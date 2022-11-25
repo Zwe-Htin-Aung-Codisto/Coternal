@@ -1,0 +1,19 @@
+const View = ViewObject();
+const Controller = ControllerObject();
+
+
+Server.Import("/killela/include/main.esp")({
+	CommandFields : ["cmd"],
+	Commands : {
+		"renderHome" : Controller.RenderHome,
+	},
+	Views : [
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?home(?:\/|\?)/, View.Home ],
+		[/./, View.Default ]
+	]
+
+})();
+
+
+
+Response.Write("Hello Zwe");
