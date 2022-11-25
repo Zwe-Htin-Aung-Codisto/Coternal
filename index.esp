@@ -16,4 +16,4 @@ Server.Import("/killela/include/main.esp")({
 
 
 
-Response.Write("Hello Zwe");
+Response.End()
