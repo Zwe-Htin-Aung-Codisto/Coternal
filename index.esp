@@ -1,5 +1,5 @@
 let PageDir = Request.ServerVariables.URL;
-Debug.LogInfo("PageDir" + PageDir);
+Debug.LogInfo("PageDir: " + PageDir);
 
 const RedirectMap = function(PageDir) {
 	return {
