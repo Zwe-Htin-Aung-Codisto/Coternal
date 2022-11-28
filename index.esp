@@ -1,13 +1,13 @@
 let PageDir = Request.ServerVariables.URL;
 Debug.LogInfo("PageDir: " + PageDir);
 
-const RedirectMap = function(PageDir) {
+const RedirectMap = function(Key) {
 	return {
 		"/" : "views/nav.esp",
 		"/admin" : "views/admin.esp",
 		"/css/all" : "views/css.esp",
 		"/js/all" : "views/js.esp"
-	}[PageDir];
+	}[Key];
 }
 
 Debug.LogInfo("Redirecting to : " + RedirectMap(PageDir));
