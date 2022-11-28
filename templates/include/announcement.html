@@ -2,9 +2,10 @@
 
 <div class="accouncement-wrap">
     <h1>Today announcements</h1>
-        {for announcements}
-        {announcements.Text}
-        {announcements.Creator}
-        {/for}
-
+    {for announcements}
+         <div class="accouncement-card">
+             <h3>{announcements.Creator}</h3>
+             <p>{announcements.Text}</p>
+         </div>
+    {/for}
 </div>

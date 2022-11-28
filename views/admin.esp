@@ -4,7 +4,6 @@
 	T.QueryString = Request.QueryString;
 	T.RootDirectory = ["/templates/"];
 	T.Input = "/admin.html";
-	T.AddData("/sql/base.sql");
 	T.AddProperty("AssetBaseURL", Request.ServerVariables.URL)
 	T.Execute();
 
