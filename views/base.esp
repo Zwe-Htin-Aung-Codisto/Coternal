@@ -1,8 +1,6 @@
 (function (){
-	//Response.Write("Hello Nav")
 
 	const Db = Server.Import("/include/db.esp")();
-	let TestTable = "";
 
 	try {
 		Db.Attach({
@@ -10,22 +8,7 @@
 			path : "/Coternal.db"
 		},
 		function(){
-			// Db.Execute("\
-			// 	CREATE TABLE IF NOT EXISTS CoternalDb.Admin (\
-			// 		AdminID integer, \
-			// 		FirstName varchar(50), \
-			// 		LastName varchar(50), \
-			// 		PRIMARY KEY (AdminID) \
-			// 	)");
-
-			// Db.Execute("\
-			// 	INSERT OR IGNORE INTO CoternalDb.Admin (AdminId, FirstName, LastName) \
-			// 	VALUES \
-			// 		(1, 'Tszlok', 'Lo' ), \
-			// 		(2, 'Zwe Htin', 'Aung') \
-			// 	");
-
-			TestTable = Db.Execute("SELECT * FROM CoternalDb.Admin");
+			// Db Functions here!
 		});
 	} catch (e) {
 		Debug.LogInfo(e.toSource());
@@ -36,8 +19,6 @@
 	T.DataSource = Db;
 	T.RootDirectory = ["/templates/"];
 	T.Input = "/base.html";
-	T.AddDataset("TestTable", TestTable);
-	T.AddDataset("ServerVariables", Request.ServerVariables);
 	T.AddProperty("AssetBaseURL", "http://" + Request.ServerVariables.HTTP_HOST + "/")
 	T.Execute();
 
