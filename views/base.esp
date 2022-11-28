@@ -35,7 +35,7 @@
 	T.QueryString = Request.QueryString;
 	T.DataSource = Db;
 	T.RootDirectory = ["/templates/"];
-	T.Input = "/nav.html";
+	T.Input = "/base.html";
 	T.AddDataset("TestTable", TestTable);
 	T.AddDataset("ServerVariables", Request.ServerVariables);
 	T.AddProperty("AssetBaseURL", "http://" + Request.ServerVariables.HTTP_HOST + "/")

@@ -3,7 +3,7 @@ Debug.LogInfo("PageDir: " + PageDir);
 
 const RedirectPage = (function() {
 	return {
-		"/" : "views/nav.esp",
+		"/" : "views/base.esp",
 		"/admin" : "views/admin.esp",
 		"/css/all" : "views/css.esp",
 		"/js/all" : "views/js.esp"
