@@ -10,7 +10,7 @@
 			path : "/Coternal.db"
 		},
 		function(){
-			TestTable = Db.Execute("SELECT * FROM CoternalDb.TestTable");
+			TestTable = Db.Execute("SELECT * FROM TestTable");
 		});
 	} catch (e) {
 		Debug.LogInfo(e.toSource());
