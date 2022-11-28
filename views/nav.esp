@@ -38,6 +38,5 @@
 	T.Input = "/nav.html";
 	T.AddDataset("TestTable", TestTable);
 	T.Execute();
-	const CSS = Server.Import("/views/css.esp")();
 
 })()
