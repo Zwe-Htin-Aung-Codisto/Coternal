@@ -1,6 +1,6 @@
 (function() {
 
 	Response.ContentType = "text/css";
-	Response.SendFile("/templates/css/nav.css");
+	Response.SendFile("/templates/css/base.css");
 
 })()

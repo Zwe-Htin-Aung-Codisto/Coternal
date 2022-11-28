@@ -1,16 +1,18 @@
-const PageDir = Request.ServerVariables.URL;
-Debug.LogInfo("PageDir: " + PageDir);
+(function(){
 
-const RedirectPage = (function() {
-	return {
-		"/" : "views/base.esp",
-		"/admin" : "views/admin.esp",
-		"/css/all" : "views/css.esp",
-		"/js/all" : "views/js.esp"
-	}[PageDir];
-}());
+	const PageDir = Request.ServerVariables.URL;
 
-if (RedirectPage) {
-	Debug.LogInfo("Redirecting to : " + RedirectPage);
-	Server.Transfer(RedirectPage);
-}
+	const RedirectPage = (function() {
+		return {
+			"/" : "views/base.esp",
+			"/admin" : "views/admin.esp",
+			"/css/all" : "views/css.esp",
+			"/js/all" : "views/js.esp"
+		}[PageDir];
+	}());
+	
+	if (RedirectPage) {
+		Server.Transfer(RedirectPage);
+	}
+
+})()
