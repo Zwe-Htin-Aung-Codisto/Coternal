@@ -1,12 +1,10 @@
 {extend file="/base.html" pageclass="accouncement" title="Accouncement"}
 
-
-Page:
-	<div class="accouncement-wrap">
-
-        {for Announcements}
-        {Announcements.Text}
-        {Announcements.Creator}
+<div class="accouncement-wrap">
+    <h1>Today announcements</h1>
+        {for announcements}
+        {announcements.Text}
+        {announcements.Creator}
         {/for}
 
-    </div>
+</div>
