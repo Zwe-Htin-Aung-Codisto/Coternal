@@ -16,8 +16,6 @@
 		Debug.LogInfo(e.toSource());
 	}
 
-	
-
 	const T = new TemplateEngine();
 	T.QueryString = Request.QueryString;
 	T.DataSource = Db;
