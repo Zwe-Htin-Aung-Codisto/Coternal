@@ -34,7 +34,7 @@
 	const T = new TemplateEngine();
 	T.QueryString = Request.QueryString;
 	T.DataSource = Db;
-	T.RootDirectory = ["/Coternal/templates/"];
+	T.RootDirectory = ["/templates/"];
 	T.Input = "/nav.html";
 	T.AddDataset("TestTable", TestTable);
 	T.Execute();
