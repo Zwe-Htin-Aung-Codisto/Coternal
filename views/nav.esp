@@ -5,7 +5,7 @@
 	T.QueryString = Request.QueryString;
 	T.DataSource = Db;
 	T.RootDirectory = "/Coternal/templates/";
-	T.Input = "/home.html";
+	T.Input = "/nav.html";
 	T.AddProperty("Sucess", 'Hello Lok');
 	T.Execute();
 
