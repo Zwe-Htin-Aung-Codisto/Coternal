@@ -1,6 +1,6 @@
 (function() {
 
-	Response.ContentType = "text/css";
+	Response.ContentType = "text/javascript";
 	Response.SendFiles("/templates/js/base.js");
 
 })
