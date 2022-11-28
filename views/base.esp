@@ -1,7 +1,7 @@
 (function (){
 
 	const Db = Server.Import("/include/db.esp")();
-
+	let announcements;
 	try {
 		Db.Attach({
 			name : "CoternalDb",
@@ -9,10 +9,14 @@
 		},
 		function(){
 			// Db Functions here!
+			announcements = Db.Execute("\
+			SELECT * From Announcements")
 		});
 	} catch (e) {
 		Debug.LogInfo(e.toSource());
 	}
+
+	
 
 	const T = new TemplateEngine();
 	T.QueryString = Request.QueryString;
@@ -20,6 +24,7 @@
 	T.RootDirectory = ["/templates/"];
 	T.Input = "/base.html";
 	T.AddProperty("AssetBaseURL", "http://" + Request.ServerVariables.HTTP_HOST + "/")
+	T.AddDataset('announcements', announcements)
 	T.Execute();
 
 })()
