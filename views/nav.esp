@@ -1,5 +1,9 @@
-
 	//Response.Write("Hello Nav")
+
+
+	const Db = Server.Import("/Coternal/include/db.esp")();
+
+
 	const T = new TemplateEngine();
 	T.QueryString = Request.QueryString;
 	T.DataSource = Db;

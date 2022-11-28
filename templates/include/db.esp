@@ -1,0 +1,397 @@
+(function(options) {
+
+	const Db = new DbConnection("sqlite::memory:");
+	Db.Execute("PRAGMA temp_store=1");
+	Db.Execute("PRAGMA soft_heap_limit=536870912");
+	Db.Execute("PRAGMA wal_autocheckpoint=100000");
+	Db.Execute("PRAGMA cache_spill=false");
+
+	Db.Execute("PRAGMA main.synchronous=0");
+	Db.Execute("PRAGMA main.page_size=1024");
+	Db.Execute("PRAGMA main.encoding=\"UTF-8\"");
+	Db.Execute("PRAGMA main.locking_mode=EXCLUSIVE");
+	Db.Execute("PRAGMA main.cache_size=0");
+	Db.Execute("PRAGMA main.auto_vacuum=0");
+	Db.Execute("PRAGMA main.secure_delete=0");
+	Db.Execute("PRAGMA main.journal_size_limit=104857600");
+
+	Object.defineProperty(Db, "Read", {
+		enumerable : false,
+		value : function(fn) {
+
+			const self = this;
+
+			for(let Retry = 0;; Retry++) {
+
+				try {
+
+					self.Execute("BEGIN TRANSACTION");
+					break;
+
+				} catch(e) {
+
+					if(Retry < 3) {
+						Server.Sleep((Math.random() > 0.5 ? 100 : 1000) * (Retry + 1));
+						continue;
+					}
+
+					throw e;
+
+				}
+
+			}
+
+			try {
+
+				return fn(self);
+
+			} finally {
+				self.Execute("COMMIT");
+			}
+
+		}
+	});
+
+	Object.defineProperty(Db, "Write", {
+		enumerable : false,
+		value : function(fn) {
+
+			const self = this;
+
+			for(let Retry = 0;; Retry++) {
+
+				try {
+
+					self.Execute("BEGIN IMMEDIATE TRANSACTION");
+					break;
+
+				} catch(e) {
+
+					if(Retry < 3) {
+						Server.Sleep((Math.random() > 0.5 ? 100 : 1000) * (Retry + 1));
+						continue;
+					}
+
+					throw e;
+
+				}
+
+			}
+
+			try {
+
+				const tx = {
+					aborted : false,
+					Abort : function() {
+
+						self.Execute("ROLLBACK");
+						this.aborted = true;
+
+					}
+				};
+
+				let result = fn.call(self, tx);
+
+				if(tx.aborted) {
+					return result;
+				}
+
+				self.Execute("COMMIT");
+
+				return result;
+
+			} catch(e) {
+
+				if(!tx.aborted) {
+
+					try {
+						self.Execute("ROLLBACK");
+					} catch(e) {
+
+					}
+				}
+
+				throw e;
+
+			}
+
+		}
+	});
+
+	Object.defineProperty(Db, "Attach", {
+		enumerable : false,
+		value : function(dbs, fn) {
+
+			const self = this;
+
+			if(!("Attachments" in self)) {
+				self.Attachments = [];
+			}
+
+			if(!Array.isArray(dbs)) {
+				dbs = [dbs];
+			}
+
+			dbs.forEach(function(db) {
+
+				const Path = (function() {
+
+					if(/^\{[^\}]+\}$/.test(db.path)) {
+
+						const [, Schema, Table, Field] = db.path.match(/\{([^\.]+)\.([^\.]+)\.([^\}]+)\}$/);
+
+						return self.ExecuteScalar("SELECT " + Field + " FROM " + Schema + "." + Table);
+					}
+
+					return db.path;
+
+				})();
+
+				self.Execute("ATTACH DATABASE ? AS " + db.name, Path);
+
+				if(db.pagesize) {
+
+					self.Execute("PRAGMA " + db.name + ".page_size=" + db.pagesize);
+					self.Execute("PRAGMA " + db.name + ".encoding=\"UTF-8\"");
+
+					if(!(db.exclusive
+						|| db.disableRollback)) {
+						// if we are exclusive or disabling rollback - don't switch to wal mode
+
+						if(!/^wal$/i.test(self.ExecuteScalar("PRAGMA " + db.name + ".journal_mode"))) {
+
+							for(let Retry = 0; ; Retry++) {
+
+								try {
+									self.Execute("PRAGMA " + db.name + ".journal_mode=wal");
+									break;
+								} catch(e) {
+									if(Retry < 3) {
+										Server.Sleep((Retry + 1) * (Math.random() > 0.5 ? 100 : 1000));
+										continue;
+									}
+
+									throw e;
+								}
+
+							}
+
+						}
+					}
+
+				}
+
+				if(db.transient) {
+					self.Execute("PRAGMA " + db.name + ".synchronous=0");
+				}
+
+				if(db.exclusive) {
+					self.Execute("PRAGMA " + db.name + ".locking_mode=EXCLUSIVE");
+					self.Execute("PRAGMA " + db.name + ".cache_spill=100");
+				}
+
+				if(db.disableRollback) {
+					self.Execute("PRAGMA " + db.name + ".journal_mode=OFF");
+				}
+
+				if(db.cachesize) {
+
+					self.Execute("PRAGMA " + db.name + ".cache_size=" + db.cachesize);
+
+				} else if(!("cachesize" in db)) {
+
+					if(db.path == ":memory:") {
+						self.Execute("PRAGMA " + db.name + ".cache_size=0");
+					} else if(db.transient || db.path == "") {
+						self.Execute("PRAGMA " + db.name + ".cache_size=-20000");
+					} else {
+						self.Execute("PRAGMA " + db.name + ".cache_size=-10000");
+					}
+
+				}
+
+				self.Execute("PRAGMA " + db.name + ".secure_delete=0");
+				self.Execute("PRAGMA " + db.name + ".auto_vacuum=0");
+				self.Execute("PRAGMA " + db.name + ".journal_size_limit=104857600");
+
+
+				self.Attachments.push(db.name);
+
+			});
+
+			if(fn) {
+
+				try {
+
+					return fn(self);
+
+				} finally {
+
+					dbs.slice().reverse().forEach(function(db) {
+
+						self.Execute("DETACH DATABASE " + db.name);
+
+					});
+
+					delete self.Attachments;
+
+				}
+
+			}
+
+			return undefined;
+
+		}
+	});
+
+	Object.defineProperty(Db, "DetachPop", {
+		enumerable : false,
+		value : function(dbs) {
+
+			const self = this;
+
+			if("Attachments" in self) {
+
+				const db = self.Attachments.pop();
+
+				self.Execute("DETACH DATABASE " + db);
+
+				return;
+
+			}
+
+			throw new Error("Invalid Detach Pop");
+
+		}
+	});
+
+	Object.defineProperty(Db, "DetachAll", {
+		enumerable : false,
+		value : function(dbs) {
+
+			const self = this;
+
+			if("Attachments" in self) {
+				self.Attachments.forEach(function(db) {
+
+					self.Execute("DETACH DATABASE " + db);
+
+				});
+
+				self.Attachments = [];
+			}
+
+		}
+	});
+
+	Object.defineProperty(Db, "Insert", {
+		enumerable : false,
+		value : function(table, values, condition) {
+
+			const self = this;
+
+			const tablesplit = table.split(/\./);
+			const schema = tablesplit.length > 1 ? tablesplit.shift() : "";
+			const tablename = tablesplit.join("");
+
+			const SQL = "INSERT INTO " + (schema ? "\"" + schema + "\"." : "") + ("\"" + tablename + "\"") + " ( \
+						" + Object.keys(values).map(function(k) {
+
+							return "\"" + k + "\"";
+
+						}).join(",") + ")"
+						+ " VALUES(" + Object.keys(values).map(function(k, idx) {
+
+							return "?" + (idx + 1);
+
+						}).join(",") + ")";
+
+			self.Execute.apply(self, [SQL].concat(Object.keys(values).map(function(k) { return values[k]; })));
+
+		}
+	});
+
+	Object.defineProperty(Db, "InsertOrReplace", {
+		enumerable : false,
+		value : function(table, values, condition) {
+
+			const self = this;
+
+			const tablesplit = table.split(/\./);
+			const schema = tablesplit.length > 1 ? tablesplit.shift() : "";
+			const tablename = tablesplit.join("");
+
+			const SQL = "INSERT OR REPLACE INTO " + (schema ? "\"" + schema + "\"." : "") + ("\"" + tablename + "\"") + " ( \
+						" + Object.keys(values).map(function(k) {
+
+							return "\"" + k + "\"";
+
+						}).join(",") + ")"
+						+ " VALUES(" + Object.keys(values).map(function(k, idx) {
+
+							return "?" + (idx + 1);
+
+						}).join(",") + ")";
+
+			self.Execute.apply(self, [SQL].concat(Object.keys(values).map(function(k) { return values[k]; })));
+
+		}
+	});
+
+	Object.defineProperty(Db, "InsertOrIgnore", {
+		enumerable : false,
+		value : function(table, values, condition) {
+
+			const self = this;
+
+			const tablesplit = table.split(/\./);
+			const schema = tablesplit.length > 1 ? tablesplit.shift() : "";
+			const tablename = tablesplit.join("");
+
+			const SQL = "INSERT OR IGNORE INTO " + (schema ? "\"" + schema + "\"." : "") + ("\"" + tablename + "\"") + " ( \
+						" + Object.keys(values).map(function(k) {
+
+							return "\"" + k + "\"";
+
+						}).join(",") + ")"
+						+ " VALUES(" + Object.keys(values).map(function(k, idx) {
+
+							return "?" + (idx + 1);
+
+						}).join(",") + ")";
+
+			self.Execute.apply(self, [SQL].concat(Object.keys(values).map(function(k) { return values[k]; })));
+
+		}
+	});
+
+	Object.defineProperty(Db, "Update", {
+		enumerable : false,
+		value : function(table, values, condition) {
+
+			const self = this;
+
+			const tablesplit = table.split(/\./);
+			const schema = tablesplit.length > 1 ? tablesplit.shift() : "";
+			const tablename = tablesplit.join("");
+
+			const SQL = "UPDATE " + (schema ? "\"" + schema + "\"." : "") + ("\"" + tablename + "\"") + " SET \
+						" + Object.keys(values).map(function(k, idx) {
+
+							return "\"" + k + "\" = ?" + (idx + 1);
+
+						}).join(",")
+						+ (condition ? "WHERE " + condition : "");
+
+			self.Execute.apply(self, [SQL].concat(Object.keys(values).map(function(k) { return values[k]; })));
+
+		}
+	});
+
+	if(Array.isArray(options)) {
+		Db.Attach(options);
+	}
+
+	return Db;
+
+})
