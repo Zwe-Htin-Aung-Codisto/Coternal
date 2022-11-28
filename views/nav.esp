@@ -1,4 +1,3 @@
-(function(Db, ViewState) {
 
 	Response.Write("Hello Nav")
 	// const T = new TemplateEngine();
@@ -9,4 +8,4 @@
 	// T.AddProperty("Sucess", 'Hello Lok');
 	// T.Execute();
 
-})
+
