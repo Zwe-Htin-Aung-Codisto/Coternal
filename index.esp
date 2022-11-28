@@ -1,11 +1,5 @@
-const PageURL = Request.ServerVariables.URL;
-Debug.LogInfo("PageURL: " + PageURL);
-
-const PageDir = PageURL.split("/");
-Debug.LogInfo("PageDir" + PageDir.toSource());
-
-PageDir = PageDir[PageDir.length - 1];
-Debug.LogInfo("PageDir After Extraction" + PageDir);
+let PageDir = Request.ServerVariables.URL;
+Debug.LogInfo("PageDir" + PageDir);
 
 // const View = {
 // 	Home : Server.Transfer("views/nav.esp"),
@@ -30,8 +24,8 @@ Debug.LogInfo("PageDir After Extraction" + PageDir);
 
 const RedirectMap = function(PageDir) {
 	return {
-		"nav" : "views/nav.esp",
-		"admin" : "views/admin.esp"
+		"/" : "views/nav.esp",
+		"/admin" : "views/admin.esp"
 	}[PageDir];
 }
 
