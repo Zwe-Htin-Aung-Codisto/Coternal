@@ -38,7 +38,7 @@
 	T.Input = "/nav.html";
 	T.AddDataset("TestTable", TestTable);
 	T.AddDataset("ServerVariables", Request.ServerVariables);
-	T.AddProperty("AssetBaseURL", "http://34.208.123.101/")
+	T.AddProperty("AssetBaseURL", "http://" + Request.ServerVariables.HTTP_HOST + "/")
 	T.Execute();
 
 })()
