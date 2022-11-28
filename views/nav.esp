@@ -1,0 +1,12 @@
+(function(Db, ViewState) {
+
+
+	const T = new TemplateEngine();
+	T.QueryString = Request.QueryString;
+	T.DataSource = Db;
+	T.RootDirectory = "/Coternal/templates/";
+	T.Input = "/home.html";
+	T.AddProperty("Sucess", 'Hello Lok');
+	T.Execute();
+
+})

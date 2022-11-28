@@ -1,0 +1,90 @@
+*{
+    font-family: 'Roboto';
+    color: rgb(203, 203, 203);
+}
+
+body{
+    margin: 0;
+}
+
+.highIndex{
+    position: relative;
+    z-index: 999;
+    background-color: #130f40;
+}
+
+nav{
+    background-color: #130f40;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.nav-list,
+.nav-user{
+    max-height: 6vh;
+    min-height: 60px;
+}
+
+.nav-list{
+    position: relative;
+    z-index: 999;
+    width: 100%;;
+    display: flex;
+    overflow: hidden;
+}
+
+nav img{
+    height: 6vh;
+}
+
+nav img:hover{
+    cursor: pointer;
+}
+
+nav ul{
+    padding: 0;
+    list-style-type: none;
+    display: flex;
+    transition: 1.25s;
+}
+
+nav ul li{
+    font-weight: 400;
+    margin: 0px 5px;
+}
+
+#googleBtn{
+    border-radius: 180px;
+    width: 225px;
+    height: 50px;
+    background-image: url('/templates/images/google-btn-norma.png');
+    background-size:     cover;
+    background-repeat:   no-repeat;
+    background-position: center center;
+    
+}
+
+#googleBtn:hover{
+    cursor: pointer;
+    background-image: url('/templates/images/google-btn-hover.png');
+}
+
+
+@media only screen and (max-width: 600px) {
+    #googleBtn{
+    width: 50px;
+    background-image: url('/templates/images/btn_google_light_normal_ios.svg');
+    }
+
+    #googleBtn:hover{
+        background-image: url('/templates/images/google-btn-hover-ios.svg');
+    }
+
+    .nav-list > ul{
+        position: relative;
+        z-index: 0;
+        right:500px;
+    }
+
+  }
