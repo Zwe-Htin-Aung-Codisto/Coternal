@@ -90,6 +90,39 @@ nav ul li{
 
   /* Announcement*/
   .announcement-wrap{
-    color: rgb(0, 0, 0);
-    border: black solid 1px;
-  }
+    outline: auto;
+    overflow: scroll;
+    height: 50vh;
+    width: 350px;
+    padding: 5px 15px;
+    position: relative;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #007aff;
+    color: #fff;
+}
+
+.announcement-title{
+    text-align: center;
+}
+
+.team-tag{
+    background-color: #5856d6;
+    padding: 3px 3px;
+    width: 75px;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: 100;
+    position: relative;
+    float: right;
+}
+
+.announcement-text{
+    font-size: smaller;
+    color:#E7C8C8;
+}
+
+.announcement-creator-footer{
+    font-size: x-small;
+    width: 100%;
+    border-bottom: #5856d6 solid 1px;
+}

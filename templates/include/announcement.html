@@ -1,11 +1,16 @@
 {extend file="/base.html" pageclass="accouncement" title="Accouncement"}
 
 <div class="announcement-wrap">
-    <h1>Today announcements</h1>
+    <h3 class="announcement-title">Announcements</h3>
     {for announcements}
-         <div class="announcement-card">
-             <h3>{announcements.Creator}</h3>
-             <p>{announcements.Text}</p>
-         </div>
+        <div class="announcement-card">
+            <span class="announcement-date"> {announcements.Date}  <span class='team-tag'> announcements.Team} </span></span>
+            <p class="announcement-text">
+                {announcements.Text}
+           </p>
+           <div class="announcement-creator-footer">
+               <p>{announcements.Emoji}</p>
+           </div>
+        </div>
     {/for}
 </div>
