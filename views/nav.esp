@@ -10,7 +10,22 @@
 			path : "/Coternal.db"
 		},
 		function(){
-			TestTable = Db.Execute("SELECT * FROM TestTable");
+			Db.Execute("\
+				CREATE TABLE CoternalDb.Admin (\
+					AdminID integer, \
+					FirstName varchar(50), \
+					LastName varchar(50), \
+					PRIMARY KEY (AdminID) \
+				)");
+
+			Db.Execute("\
+				INSERT OR IGNORE INTO CoternalDb.Admin (AdminId, FirstName, LastName) \
+				VALUES \
+					(1, 'Tszlok', 'Lo' ), \
+					(2, 'Zwe Htin', 'Aung') \
+				");
+
+			TestTable = Db.Execute("SELECT * FROM CoternalDb.Admin");
 		});
 	} catch (e) {
 		Debug.LogInfo(e.toSource());
@@ -21,7 +36,7 @@
 	T.DataSource = Db;
 	T.RootDirectory = ["/Coternal/templates/"];
 	T.Input = "/nav.html";
-	T.AddProperty("TestTable", TestTable);
+	T.AddDataset("TestTable", TestTable);
 	T.Execute();
 
 })()
