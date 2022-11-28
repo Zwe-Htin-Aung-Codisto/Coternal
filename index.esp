@@ -1,3 +1,41 @@
-//Debug.LogInfo(Request.ServerVariables.URL)
+const PageURL = Request.ServerVariables.URL;
+Debug.LogInfo("PageURL: " + PageURL);
 
-Server.Transfer('views/nav.esp')
+const PageDir = PageURL.split("/");
+Debug.LogInfo("PageDir" + PageDir.toSource());
+
+PageDir = PageDir[PageDir.length - 1];
+Debug.LogInfo("PageDir After Extraction" + PageDir);
+
+// const View = {
+// 	Home : Server.Transfer("views/nav.esp"),
+// 	Admin : Server.Transfer("views/admin.esp")
+// };
+// const Controller = {
+// 	Home : Server.Transfer("views/nav.esp"),
+// 	Admin : Server.Transfer("views/admin.esp")
+// };
+
+// Server.Import("/killela/include/main.esp")({
+// 	CommandFields : ["cmd"],
+// 	Commands : {
+// 		"home" : Controller.Home,
+// 		"admin" : Controller.Admin
+// 	},
+// 	Views : [
+// 		[/\/([^\/]+)\/?$/, View.Home],
+// 		[/\/([^\/]+)\/Admin\/?$/, View.Admin]
+// 	]
+// });
+
+const RedirectMap = function(PageDir) {
+	return {
+		"nav" : "views/nav.esp",
+		"admin" : "views/admin.esp"
+	}[PageDir];
+}
+
+Debug.LogInfo("Redirecting to : " + RedirectMap(PageDir));
+Server.Transfer(RedirectMap(PageDir));
+
+// Server.Transfer('views/nav.esp')

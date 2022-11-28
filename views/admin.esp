@@ -1,0 +1,10 @@
+(function (){
+
+	const T = new TemplateEngine();
+	T.QueryString = Request.QueryString;
+	T.RootDirectory = ["/templates/"];
+	T.Input = "/admin.html";
+	T.AddProperty("AssetBaseURL", Request.ServerVariables.URL)
+	T.Execute();
+
+})()
