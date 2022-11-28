@@ -1,19 +1,2140 @@
+const CACHE_BUSTER = 830;
+
+if(!("MERCHANT" in Request.ServerVariables)) {
+	Server.Transfer("frontend.esp", "CACHE_BUSTER=" + CACHE_BUSTER);
+}
+
+const DevEnv = (Application.DEV && !/^(?:off|0|false)$/.test(Application.DEV));
+const CanaryEnv = (Application.CANARY && !/^(?:off|0|false)$/.test(Application.CANARY));
+
+const CDNDomain = (Application.NWO_CDNDOMAIN || "d31wxntiwn0x96.cloudfront.net");
+const ImageBaseURL = !DevEnv ?
+						"https://" + CDNDomain + "/{token}/"
+						: "https://" + ManageDomain(Request.ServerVariables.HTTP_HOST) + "/" + Request.ServerVariables.MERCHANT + "/";
+const AssetBaseURL = !(DevEnv || CanaryEnv) ?
+						"https://" + CDNDomain + "/connect/" + Request.ServerVariables.MERCHANT + "/"
+						: "https://" + ManageDomain(Request.ServerVariables.HTTP_HOST) + "/" + Request.ServerVariables.MERCHANT + "/";
+const ViaCDN = DevEnv || CanaryEnv || ("HTTP_X_CDN" in Request.ServerVariables);
+
+const Compress = (function() {
+	if("__cfuid" in Request.Cookies)
+		return false;
+
+	return true;
+})();
+
+function ManageDomain(domain) {
+
+	if(/^(?:zendesk\.codisto\.com|ontech\.codisto\.com|[a-zA-Z0-9-]+\.ezimerchant\.com)\.?/i.test(domain)) {
+		return "ui.codisto.com";
+	}
+
+	return domain;
+
+}
+
+Object.defineProperty(Response, "Redirect", { enumerate : false, value : function(url, status) {
+
+	Server.Import("/killela/include/redirect.esp")(url, status);
+
+}});
+
 const View = ViewObject();
 const Controller = ControllerObject();
-
 
 Server.Import("/killela/include/main.esp")({
 	CommandFields : ["cmd"],
 	Commands : {
-		"renderHome" : Controller.RenderHome,
+		"updateitemspecifics" : Controller.UpdateItemSpecifics,
+		"keydata" : Controller.KeyData,
+		"readdata" : Controller.ReadData,
+		"filtercontent" : Controller.FilterContent,
+		"retrypublish" : Controller.EbayRetryPublish,
+		"amazonretrypublish" : Controller.AmazonRetryPublish,
+		"retryorderpush" : Controller.RetryOrderPush,
+		"savedata" : Controller.SaveData,
+		"upgrade" : Controller.Upgrade,
+		"adduser" : Controller.AddUser,
+		"edituser" : Controller.EditUser,
+		"removeuser" : Controller.RemoveUser,
+		"polldata" : Controller.PollData,
+		"amazonconnect" : Controller.AmazonConnect,
+		"amazonauthreturn" : Controller.AmazonAuthReturn,
+		"amazondisconnect" : Controller.AmazonDisconnect,
+		"ebaydisconnect" : Controller.EbayDisconnect,
+		"uploadlogo" : Controller.UploadLogo,
+		"updatepaymentmethod" : Controller.UpdatePaymentMethod,
+		"updatepolicymode" : Controller.UpdatePolicyMode,
+		"updatedimensions" : Controller.UpdateDimensions,
+		"updatesyncorderstatus" : Controller.UpdateSyncOrderStatus,
+		"updateamazonsyncorderstatus" : Controller.UpdateAmazonSyncOrderStatus,
+		"updatefeedbackmessage" : Controller.UpdateFeedbackMessage,
+		"updateordernumber" : Controller.UpdateOrderNumber,
+		"updatelocation" : Controller.UpdateLocation,
+		"updatetaxhandling" : Controller.UpdateTaxHandling,
+		"publishtemplate" : Controller.PublishTemplate,
+		"resubscribe" : Controller.ReSubscribe,
+		"pushalldata" : Controller.PushAllData,
+		"storeviewmap" : Controller.StoreViewMap,
+		"linkamazonlistings" : Controller.LinkAmazonListings,
+		"linkebaylistings" : Controller.LinkEbayListings,
+		"importsettings" : Controller.ImportSettings,
+		"updateattributemapping" : Controller.UpdateAttributeMapping,
+		"updatesyncfield" : Controller.UpdateSyncField,
+		"updateebaycategories" : Controller.UpdateEbayCategories,
+		"addebaycategory" : Controller.AddEbayCategory,
+		"deleteebaycategory" : Controller.DeleteEbayCategory,
+		"reloadebaycategories" : Controller.ReloadEbayCategories,
+		"renameebaycategory" : Controller.RenameEbayCategory,
+		"moveebaycategory" : Controller.MoveEbayCategory,
+		"reloadebaypolicies" : Controller.ReloadEbayPolicies,
+		"saveaccountdetails" : Controller.SaveAccountDetails,
+		"reactivate" : Controller.Reactivate,
+		"closeaccount" : Controller.CloseAccount,
+		"addbillingrecipient" : Controller.AddBillingRecipient,
+		"addbillinginfo" : Controller.AddBillingInfo,
+		"deletebillingrecipients" : Controller.DeleteBillingRecipients,
+		"introviewed" : Controller.IntroViewed,
+		"amazoneprdismiss" : Controller.AmazonEPRDismiss,
+		"saveebaydefaults" : Controller.SaveEbayDefaults,
+		"saveamazondefaults" : Controller.SaveAmazonDefaults,
+		"savewalmartdefaults" : Controller.SaveWalmartDefaults,
+		"savegoogledefaults" : Controller.SaveGoogleDefaults,
+		"hidewizard" : Controller.HideWizard,
+		"updateebaysite" : Controller.UpdateEbaySite,
+		"refreshcurrency" : Controller.RefreshCurrency,
+		"updatecurrencies" : Controller.UpdateCurrencies,
+		"clearintrostate" : Controller.ClearIntroState,
+		"outofstockcontrol" : Controller.EbayOutOfStockControl,
+		"showoutofstockcontrol" : Controller.ShowOutOfStockControl,
+		"enterpriseenquiry" : Controller.EnterpriseEnquiry,
+		"updatehost" : Controller.UpdateHost,
+		"paymentform" : Controller.PaymentForm,
+		"ebayepidspropertiesvalues" : Controller.EbayEpidsPropertiesValues,
+		"switchtoapp" : Controller.SwitchToApp,
+		"linkgoogle" : Controller.LinkGoogle,
+		"linkkogan" : Controller.LinkKogan,
+		"walmart.link" : Controller.LinkWalmart,
+		"walmart.creds" : Controller.WalmartCreds,
+		"rungooglechecklist" : Controller.RunGoogleChecklist,
+		"skipgooglechecklist" : Controller.SkipGoogleChecklist,
+		"googlepublish" : Controller.GooglePublish,
+		"googlereauth" : Controller.GoogleReAuth,
+		"googlecampaign.start" : Controller.GoogleStartCampaign,
+		"googlecampaign.play" : Controller.GooglePlayCampaign,
+		"googlecampaign.pause" : Controller.GooglePauseCampaign,
+		"googlecampaign.delete" : Controller.GoogleDeleteCampaign,
+		"googlecampaign.edit" : Controller.GoogleEditCampaign,
+		"googleadaccountassign" : Controller.GoogleAdAccountAssign,
+		"googleadaccountcreate" : Controller.GoogleAdAccountCreate,
+		"googlechecklist.fix.gmcsitematch" : Controller.GoogleFixGMCSiteMatch,
+		"googlechecklist.fix.gmcverify" : Controller.GoogleFixGMCVerify,
+		"googlechecklist.fix.gmcclaim" : Controller.GoogleFixGMCClaim,
+		"googlechecklist.fix.gmcsitematchignore" : Controller.GoogleFixGMCSiteMatchIgnore,
+		"googlechecklist.ignore" : Controller.GoogleFixIgnore,
+		"googlechecklist.fix.accountstatusignore" : Controller.GoogleFixAccountStatusIgnore,
+		"googlechecklist.fix.paymentmethodverified" : Controller.GoogleFixPaymentMethodVerified,
+		"googlechecklist.fix.shippingverified" : Controller.GoogleFixShippingVerified,
+		"googlechecklist.fix.shippingupload" : Controller.GoogleFixShippingUpload,
+		"googlechecklist.fix.shippingcheckrules" : Controller.GoogleFixShippingCheckRules,
+		"googlechecklist.fix.shippingignore" : Controller.GoogleFixShippingIgnore,
+		"googlechecklist.fix.trackingscriptverified" : Controller.GoogleFixTrackingScript,
+		"googlechecklist.fix.trackingscriptignore" : Controller.GoogleFixTrackingScript,
+		"googlechecklist.fix.taxverified" : Controller.GoogleFixTaxVerified,
+		"googlechecklist.fix.taxupload" : Controller.GoogleFixTaxUpload,
+		"googlechecklist.fix.taxcheckrules" : Controller.GoogleFixTaxCheckRules,
+		"googlechecklist.fix.taxignore" : Controller.GoogleFixTaxIgnore,
+		"googlechecklist.fix.contactdetails" : Controller.GoogleFixContactDetails,
+		"googlechecklist.fix.termsandconditions" : Controller.GoogleFixTermsAndConditions,
+		"googlechecklist.fix.refundpolicy" : Controller.GoogleFixRefundPolicy,
+		"googlechecklist.fix.requestphoneverification" : Controller.GoogleFixRequestPhoneVerification,
+		"googlechecklist.fix.verifyphonenumber" : Controller.GoogleFixVerifyPhoneNumber,
+		"walmartshippingrules" : Controller.WalmartShippingRules,
+		"ebayvideoupload" : Controller.EbayVideoUpload,
+		"updateonfiguration" : Controller.UpdateConfiguration,
+		"updateorderstatus" : Controller.Updateorderstatus,
+		"mccoptout" : Controller.GoogleMCCOptOut
 	},
 	Views : [
-		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?home(?:\/|\?)/, View.Home ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?keydata(?:$|\?|\/|_|\.)/, Controller.KeyData ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?readdata(?:$|\?|\/|_|\.)/, Controller.ReadData ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?polldata(?:$|\?|\/|_|\.)/, Controller.PollData ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?syncpoll\/?(?:$|\?)/, View.SyncPoll ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?getebayratetables\/?(?:$|\?)/, View.GetEbayRateTables ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?searchebaypolicies\/?(?:$|\?)/, View.SearchEbayPolicies ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?filtercontent(?:$|\?|\/|_|\.)/, Controller.FilterContent ],
+		[/(?:frame\/\d+\/)?(?:ebaytab\/)?js\/all(?:$|\?|\/|_|\.)/, View.ClientScript ],
+		[/(?:frame\/\d+\/)?(?:ebaytab\/)?css\/all(?:$|\?|\/|_|\.)/, View.ClientStyle ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?getascinstallstatus\/?(?:$|\?)/, View.GetAscInstallStatus ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product\/(\d+)\/ebayerrors\/?(?:$|\?)/, View.ProductEbayErrors ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product\/(\d+)\/googleerrors\/?(?:$|\?)/, View.ProductGoogleErrors ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product\/(\d+)\/amazonerrors\/?(?:$|\?)/, View.ProductAmazonErrors ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product\/(\d+)\/koganerrors\/?(?:$|\?)/, View.ProductKoganErrors ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product\/(\d+)\/walmarterrors\/?(?:$|\?)/, View.ProductWalmartErrors ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product\/(\d+)\/amazondetailerrors\/?(?:$|\?)/, View.ProductAmazonDetailErrors ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?order\/(\d+)\/ordererrors\/?(?:$|\?)/, View.OrderErrors ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product(?:ebay|amazon)?\/(\d+)\/ebaycategorysuggestions\/?(?:$|\?)/, View.ProductEbayCategorySuggestions ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product(?:ebay|amazon)?\/(\d+)\/ebayitemspecifics\/?(?:$|\?)/, View.ProductEbayItemSpecifics ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?ebaycategorychooser\/?(?:$|\?)/, View.ProductEbayCategoryChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?ebaystorecategorychooser\/?(?:$|\?)/, View.ProductEbayStoreCategoryChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?amazoncategorysearch\/?(?:$|\?)/, View.ProductAmazonCategorySearch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?amazonitemtypesearch\/?(?:$|\?)/, View.AmazonItemType ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?amazoncategorychooser\/?(?:$|\?)/, View.ProductAmazonCategoryChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?amazonlistingcreation\/?(?:$|\?)/, View.ProductAmazonListingCreation ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?batteryinfoedit\/?(?:$|\?)/, View.ProductAmazonBatteryInfo ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?prop65infoedit\/?(?:$|\?)/, View.ProductAmazonProp65Info ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?amazonsku\/?(?:$|\?)/, View.ProductAmazonSKU ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?ebaylistingview(?:$|\?|\/|_)/, View.EbayItemRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?amazonlistingview(?:$|\?|\/|_)/, View.AmazonItemRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?googlelistingview(?:$|\?|\/|_)/, View.GoogleItemRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?koganlistingview(?:$|\?|\/|_)/, View.KoganItemRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(\d+)\/)?walmartlistingview(?:$|\?|\/|_)/, View.WalmartItemRedirect ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product?\/(\d+)\/?amazonproductedit(?:$|\?)/, View.AmazonProductEdit ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product?\/(\d+)\/?ebayproductedit(?:$|\?)/, View.EbayProductEdit ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product?\/(\d+)\/?googleproductedit(?:$|\?)/, View.GoogleProductEdit ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product?\/(\d+)\/?koganproductedit(?:$|\?)/, View.KoganProductEdit ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product?\/(\d+)\/?walmartproductedit(?:$|\?)/, View.WalmartProductEdit ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?product(?:ebay|amazon)?\/(\d+)\/?(?:$|\?)/, View.Product ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?\/?(?:$|\?)/, View.Home ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:listings)?(?:\/index)?\/?(?:$|\?)/, View.ManageListings ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebayedit\/?(?:$|\?)/, View.EbayBulkEditorRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebay\/?(?:$|\?)/, View.EbayBulkEditor ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazon\/?(?:$|\?)/, View.AmazonBulkEditor ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?google\/?(?:$|\?)/, View.GoogleBulkEditor ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?kogan\/?(?:$|\?)/, View.KoganBulkEditor ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?walmart\/?(?:$|\?)/, View.WalmartBulkEditor ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?categories\/?(?:$|\?)/, View.CategoryEditor ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?linkebay\/?(?:$|\?)/, View.LinkEbay ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?linkebayoauth\/?(?:$|\?)/, View.LinkEbayOAuth ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?linkamazon\/?(?:$|\?)/, View.LinkAmazon ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?linkebaynew\/?(?:$|\?)/, View.LinkEbayNew ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?reauth\/?(?:$|\?)/, View.ReAuth ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?reauthebay\/?(?:$|\?)/, View.ReAuthEbay ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebayvideostatus\/([^\?]+)(?:$|\?)/, View.EbayVideoStatus ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?linkgoogle(?:new)?\/?(?:$|\?)/, View.LinkGoogle ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?linkkogan(?:new)?\/?(?:$|\?)/, View.LinkKogan ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?linkwalmart(?:new)?\/?(?:$|\?)/, View.LinkWalmart ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebaycategorytable\?/, View.EbayCategoryTable ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebaysubcategories\?/, View.EbaySubCategories ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebaypropertyvalues\?/, View.EbayPropertyValues ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonsubcategories\?/, View.AmazonSubCategories ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebaycategory\/(\d+)\/?(?:$|\?)/, View.EbayCategoryRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazoncategory\/(\d+)\/?(?:$|\?)/, View.AmazonCategoryRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?status\/?(?:$|\?)/, View.Status ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?quotausage\/?(?:$|\?)/, View.QuotaUsage ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?upgrade\/?(?:$|\?)/, View.Upgrade ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?templatepreview\/?(?:$|\?)/, View.TemplatePreview ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?templateeditor\/?(?:$|\?)/, View.TemplateEditorRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonpreview\/(\d+)\/?(?:$|\?)/, View.AmazonPreview ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?preview\/(\d+)\/?(?:$|\?)/, View.EbayPreview ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?advancesearch\?/, View.AdvanceSearch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?productlist\?/, View.ProductList ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?productsearch\?/, View.ProductSearch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonproductsearch\?/, View.AmazonProductSearch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistings\/?(?:$|\?)/, View.ImportListings ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsebay\/?(?:$|\?)/, View.ImportListingsEbay ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsamazon\/?(?:$|\?)/, View.ImportListingsAmazon ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsamazon\/reviewskumatch\/?(?:$|\?)/, View.ImportListingsAmazonSKUMatch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsebay\/reviewskumatch\/?(?:$|\?)/, View.ImportListingsEbaySKUMatch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsamazon\/reviewfuzzymatch\/?(?:$|\?)/, View.ImportListingsAmazonFuzzyMatch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsebay\/reviewfuzzymatch\/?(?:$|\?)/, View.ImportListingsEbayFuzzyMatch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsamazon\/reviewnomatch\/?(?:$|\?)/, View.ImportListingsAmazonNoMatch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsebay\/reviewnomatch\/?(?:$|\?)/, View.ImportListingsEbayNoMatch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsebay\/importrules\/?(?:$|\?)/, View.ImportListingsEbayImportRules ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsamazon\/summary\/?(?:$|\?)/, View.ImportListingsAmazonSummary ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?importlistingsebay\/summary\/?(?:$|\?)/, View.ImportListingsEbaySummary ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebayavatar\/?(?:$|\?)/, View.EbayAvatar ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonavatar\/?(?:$|\?)/, View.AmazonAvatar ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?unsubscribe\/?(?:$|\?)/, View.EmailUnsubscribe ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?accountsettings\/?(?:$|\?)/, View.AccountSettings ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?orders\/(?:$|\?)/, View.Orders ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?settings\/currencyquote\/?(?:$|\?)/, View.CurrencyQuote ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?settings\/currencies\/?(?:$|\?)/, View.Currencies ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?settings\/?(?:$|\?)/, View.Settings ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?testendpoint\/?(?:$|\?)/, View.TestMerchantEndpoint ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?mappings\/?(?:$|\?)/, View.Mappings ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/ebay\/?(?:$|\?)/, View.EbayAttributeMapping ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/amazon\/?(?:$|\?)/, View.AmazonAttributeMapping ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/google\/?(?:$|\?)/, View.GoogleAttributeMapping ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/kogan\/?(?:$|\?)/, View.KoganAttributeMapping ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/walmart\/?(?:$|\?)/, View.WalmartAttributeMapping ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/walmartcategories\/?(?:$|\?)/, View.WalmartCategories ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/amazonproducttypes\/?(?:$|\?)/, View.AmazonProductTypes ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/amazonproducttypesview\/?(?:$|\?)/, View.AmazonProductTypesView ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/walmartcategoriesview\/?(?:$|\?)/, View.WalmartCategoriesView ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/ebaystatusformulavalidate\/?(?:$|\?)/, View.EbayStatusFormulaValidate ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/formulavalidate\/?(?:$|\?)/, View.FormulaValidate ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?attributemapping\/?(?:$|\?)/, View.AttributeMapping ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?titleresult\/?(?:$|\?)/, View.TitleResult ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?account\/?(?:$|\?)/, View.Account ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?enterpriseagreement\/?(?:$|\?)/, View.EnterpriseAgreement ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?invoice\/(\d+)\/?(?:$|\?)/, View.Invoice ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?invoiceprint\?invoice=(\d+)$/, View.InvoicePDF ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?invoiceprint\/(\d+)\/?(?:$|\?)/, View.InvoicePrint ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?payment\/?(?:$|\?)/, View.Payment ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?closedaccount\/?(?:$|\?)/, View.ClosedAccount ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?shopifybilling\/?(?:$|\?)/, View.ShopifyBilling ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?shopifypayreturn\/?(?:$|\?)/, View.ShopifyBillingLegacy ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?billingrecipientpoll\/?(?:$|\?)/, View.BillingRecipientPoll ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazoncategories\/?(?:$|\?)/, View.AmazonCategories ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?walmartwizard\/?(?:$|\?)/, View.WalmartWizard ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebaywizard\/?(?:$|\?)/, View.EbayWizard ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonwizard\/?(?:$|\?)/, View.AmazonWizard ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlewizard\/?(?:$|\?)/, View.GoogleWizard ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonproducttype\/?(?:$|\?)/, View.AmazonProductType ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonitemtype\/?(?:$|\?)/, View.AmazonItemType ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(amazon)?\/(\d+)\/)?amazonvariationtheme\/?(?:$|\?)/, View.AmazonVariationTheme ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonasinwizard\/?(?:$|\?)/, View.AmazonASINWizard ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?getebayimportstatus\/?(?:$|\?)/, View.ImportStatusEbay ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?getamazonimportstatus\/?(?:$|\?)/, View.ImportStatusAmazon ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?getebaylinkingstatus\/?(?:$|\?)/, View.LinkingStatusEbay ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?getamazonlinkingstatus\/?(?:$|\?)/, View.LinkingStatusAmazon ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebayproductsearch\/?(?:$|\?)/, View.EbayProductSearch ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?login\/payment\/?(?:$|\?)/, View.LoginPaymentForm ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?paymentform\/?(?:$|\?)/, View.PaymentForm ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?paymentsuccess\/?(?:$|\?)/, View.PaymentSuccess ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?paymentfailed\/?(?:$|\?)/, View.PaymentFailed ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebay\/simpleedit\/?(?:$|\?)/, View.SimpleEditEbay ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazon\/simpleedit\/?(?:$|\?)/, View.SimpleEditAmazon ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?google\/simpleedit\/?(?:$|\?)/, View.SimpleEditGoogle ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?kogan\/simpleedit\/?(?:$|\?)/, View.SimpleEditKogan ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?walmart\/simpleedit\/?(?:$|\?)/, View.SimpleEditWalmart ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlechecklist\/?(?:$|\?)/, View.GoogleChecklist ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlecheckliststatus\/?(?:$|\?)/, View.GoogleChecklistStatus ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlechecklistfix\/?(?:$|\?)/, View.GoogleChecklistFix ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlecampaign\/?(?:$|\?)/, View.GoogleCampaign ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlemetrics\/?(?:$|\?)/, View.GoogleMetrics ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googleproductmetrics\/?(?:$|\?)/, View.GoogleProductMetrics ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product\/(\d+)\/)?googlecategorychooser\/?(?:$|\?)/, View.GoogleCategoryChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product\/(\d+)\/)?kogancategorychooser\/?(?:$|\?)/, View.KoganCategoryChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product\/(\d+)\/)?walmartcategorychooser\/?(?:$|\?)/, View.WalmartCategoryChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product\/(\d+)\/)?walmartshippingchooser\/?(?:$|\?)/, View.WalmartShippingChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product\/(\d+)\/)?walmartshippingnew\/?(?:$|\?)/, View.WalmartShippingNew ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product\/(\d+)\/)?walmartshippingedit\/?(?:$|\?)/, View.WalmartShippingEdit ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?walmartshipping\/?(?:$|\?)/, View.WalmartShippingChooser ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlesubcategories\?/, View.GoogleSubCategories ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?kogansubcategories\?/, View.KoganSubCategories ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?timezone\/?(?:$|\?)/, View.TimeZone ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?checkgoogleshippingpopulated\/?(?:$|\?)/, View.GoogleShippingPopulated ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?checkgooglelistingpopulated\/?(?:$|\?)/, View.GoogleListingPopulated ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?ebaylistingreport\/?(?:$|\?)/, View.EbayListingReport ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?amazonlistingreport\/?(?:$|\?)/, View.AmazonListingReport ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?connections\/?(?:$|\?)/, View.Connections ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?dashboard\/?(?:$|\?)/, View.Dashboard ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?googlereport\/?(?:$|\?)/, View.GoogleReport ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?connectshopify\/?(?:$|\?)/, View.ConnectShopify ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?reauthcart\/?(?:$|\?)/, View.ReAuthCart ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?connectbigcommerce\/?(?:$|\?)/, View.ConnectBigCommerce ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?notifications\/?(?:$|\?)/, View.Notifications ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?notification\?id=(\d+)\/?(?:$|\?)/, View.Notification ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?home\/?(?:$|\?)/, View.Home ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?analytics\/?(?:$|\?)/, View.Analytics ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?(?:product(?:ebay|amazon)?\/(?:\d+)\/)?ordersetting\/?(?:$|\?)/, View.OrderSetting ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?settings\/orderstatus\/?(?:$|\?)/, View.Orderstatus ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?ebaypayment(?:\/|\?)/, View.EbayPaymentRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?amazonlinkerror\/?(?:$|\?)/, View.AmazonLinkError ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?amazonsellererror\/?(?:$|\?)/, View.AmazonSellerError ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?ebaysale(?:\/|\?)/, View.EbaySaleRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?amazonsale(?:\/|\?)/, View.AmazonSaleRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?walmartsale(?:\/|\?)/, View.WalmartSaleRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?ebaysaleref(?:\/|\?)/, View.EbaySaleRef ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?amazonsaleref(?:\/|\?)/, View.AmazonSaleRef ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?walmartsaleref(?:\/|\?)/, View.WalmartSaleRef ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?ebayuser(?:\/|\?)/, View.EbayUserRedirect ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?order\?/, View.MarketplaceOrder ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?draftorder\?/, View.MarketplaceOrder ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?product\/\?/, View.ProductNew ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?products\?/, View.ProductsFiltered ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?customer\?/, View.Customer ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?error\?/, View.ErrorHandler ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?transfer\?/, View.CartTransfer ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?transfer(?:\/|\?)/, View.DefaultApp ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?shopifyproxy\?/, View.ShopifyProxy ],
+        [/^\/(?:[a-zA-Z0-9]{32,64}\/)?nav\?/, View.Nav ],
+
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?mcclink\?/, View.GoogleMCCLink ],
+		[/^\/(?:[a-zA-Z0-9]{32,64}\/)?(?:frame\/\d+\/)?(?:ebaytab\/)?zendeskid\/?(?:$|\?)/, View.ZendeskID ],
 		[/./, View.Default ]
 	]
 
 })();
 
+function AttachDbs(attachments, f) {
+
+	const self = this;
+	const attachargs = Array.prototype.slice.call(arguments, 2);
+
+	return function(MerchantID, Db) {
+
+		const args = Array.prototype.slice.call(arguments, 0)
+						.concat(attachargs)
+						.map(function(arg) {
+
+							return typeof(arg) === "function" ? arg() : arg;
+
+						});
+
+		const attach = attachments.map(function(name) {
+
+			if(/^ebaymerchantdb$/i.test(name)) {
+				return {
+					name : "eBayMerchantDb",
+					path : "/data/ebay.db"
+				};
+			}
+
+			if(/^amazondb$/i.test(name)) {
+				return {
+					name : "AmazonDb",
+					path : "/data/amazon.db"
+				};
+			}
+
+			if(/^googledb$/i.test(name)) {
+				return {
+					name : "GoogleDb",
+					path : "/data/google.db"
+				};
+			}
+
+			if(/^kogandb$/i.test(name)) {
+				return {
+					name : "KoganDb",
+					path : "/data/kogan.db"
+				};
+			}
+
+			if(/^walmartdb$/i.test(name)) {
+				return {
+					name : "WalmartDb",
+					path : "/data/walmart.db"
+				};
+			}
+
+			if(/^ebaydefaultdb$/i.test(name)) {
+				return {
+					name : "eBayDefaultDb",
+					path : "/ebay/collaroy.db",
+					transient : true
+				};
+			}
+
+			if(/^amazondefaultdb$/i.test(name)) {
+				return {
+					name : "AmazonDefaultDb",
+					path : "/amazon/hyams.db",
+					transient : true
+				};
+			}
+
+			if(/^googledefaultdb/i.test(name)) {
+				return {
+					name : "GoogleDefaultDb",
+					path : "/google/collingwood.db",
+					transient : true
+				};
+			}
+
+			if(/^kogandefaultdb/i.test(name)) {
+				return {
+					name : "KoganDefaultDb",
+					path : "/kogan/cudmirrah.db",
+					transient : true
+				};
+			}
+
+			if(/^walmartdefaultdb/i.test(name)) {
+				return {
+					name : "WalmartDefaultDb",
+					path : "/walmart/gannet.db",
+					transient : true
+				};
+			}
+
+			if(/^reportingdb/i.test(name)) {
+				return {
+					name : "ReportingDb",
+					path : "/data/reporting.db"
+				};
+			}
+
+			if(/^location$/i.test(name)) {
+				return {
+					name : "LocationDb",
+					path : "{MerchantDb.MerchantDefaults.LocationDb}",
+					transient : true
+				};
+			}
+
+			throw new Error("unmapped attachment " + name);
+
+		});
+
+		Db.Attach(attach, function() {
+
+			if(typeof(f) === "string") {
+
+				Server.Import(f).apply(self, args);
+
+			} else {
+
+				f.apply(self, args);
+
+			}
+
+		});
+
+	};
+
+};
+
+function ControllerObject() {
+
+	const self = this;
+	const BaseURL = Request.ServerVariables.HTTP_X_ADMIN_BASE_URL || "https://" + Request.ServerVariables.HTTP_HOST + "/" + Request.ServerVariables.MERCHANT + "/";
+
+	const SwitchURL = function(BaseUrl) {
+
+		const SaaS = /^https?:\/\/[^\/]+\/\d+\//.test(BaseURL);
+		if(SaaS) { //BigCommerce|Shopify|Ecwid
+			return BaseURL.replace(/^(https?:\/\/[^\/]+)\/\d+\//, "$1/{merchantid}/");
+		}
+
+		const Manage = /^https?:\/\/(?:zendesk\.codisto\.com|ontech\.codisto\.com|[a-zA-Z0-9-]+\.ezimerchant\.com)\.?(?::\d+)?\//.test(BaseURL);
+		if(Manage) {
+			return BaseURL.replace(/^(https?:\/\/(?:zendesk\.codisto\.com|ontech\.codisto\.com|[a-zA-Z0-9-]+\.ezimerchant\.com)\.?(?::\d+)?\/.*)\/\d+\//, "$1/{merchantid}/");
+		}
+
+		//WooCommerce|Magento|PrestaShop
+		return BaseURL.replace(/\/\d+\/\d+\//, "/{storeid}/{merchantid}/");
+
+	};
+
+	const Cart = Request.QueryString.carttest
+				|| Request.ServerVariables.HTTP_X_CODISTO_CART
+				|| (/^shopify\.codisto\.com\.?(?:$|:)|^shopui\.codisto\.com\.?(?:$|:)/.test(Request.ServerVariables.HTTP_HOST) ? "shopify" : "")
+				|| (/^bc\.codisto\.com\.?(?:$|:)/.test(Request.ServerVariables.HTTP_HOST) ? "bigcommerce" : "")
+				|| (/^ecwid\.codisto\.com\.?(?:$|:)/.test(Request.ServerVariables.HTTP_HOST) ? "ecwid" : "")
+				|| "magento";
+
+	const CartName = function(Cart) {
+
+		return {
+			"magento" : "Magento",
+			"woocommerce" : "WooCommerce",
+			"shopify" : "Shopify",
+			"bigcommerce" : "BigCommerce",
+			"ecwid" : "Webstore",
+			"prestashop" : "PrestaShop"
+		}[Cart] || "Cart"
+
+	}
+
+	const InitFn = function(f) {
+
+		const controllerargs = Array.prototype.slice.call(arguments, 1);
+
+		return function() {
+
+			const args = Array.prototype.splice.call(arguments, 0)
+							.concat(controllerargs)
+							.map(function(arg) {
+
+								return typeof(arg) === "function" ? arg() : arg;
+
+							});
+
+			const MerchantID = parseInt(Request.ServerVariables.MERCHANT, 10);
+
+			const Db = Server.Import("/killela/include/db.esp")();
+
+			Db.Attach({
+				name : "MerchantDb",
+				path : "/data/merchant.db"
+			}, function() {
+
+				if(typeof(f) === "string") {
+					Server.Import(f).apply(self, [MerchantID, Db].concat(args));
+				} else {
+					f.apply(self, [MerchantID, Db].concat(args));
+				}
+
+			});
+
+			Response.End();
+
+		};
+	};
+
+	const AuthEbayFn = function(f) {
+
+		const controllerargs = Array.prototype.slice.call(arguments, 1);
+
+		return function() {
+
+			const args = Array.prototype.slice.call(arguments, 0)
+							.concat(controllerargs)
+							.map(function(arg) {
+
+								return typeof(arg) === "function" ? arg() : arg;
+
+							});
+
+			const ebayNS = new Namespace("urn:ebay:apis:eBLBaseComponents");
+
+			Server.Require("/killela/include/ebay.esp");
+
+			AuthFn(function(MerchantID, Db) {
+
+				Db.Attach([{
+					name : "eBayDefaultDb",
+					path : "/ebay/collaroy.db",
+					forRead : true
+				}, {
+					name : "eBayMerchantDb",
+					path : "/data/ebay.db",
+				}], function() {
+
+					const EbayAuth = EbayMerchantOptions(Db);
+					const EbaySiteID = Db.ExecuteScalar("SELECT SiteID FROM eBayMerchantDB.eBayDefaults");
+					const EbayAuthToken = Db.ExecuteScalar("SELECT EbayAuthToken FROM MerchantDefaults");
+
+					if(typeof(f) === "string") {
+						Server.Import(f).apply(self, [MerchantID, Db, ebayNS, EbayAuth, EbaySiteID, EbayAuthToken].concat(args));
+					} else {
+						f.apply(self, [MerchantID, Db, ebayNS, EbayAuth, EbaySiteID, EbayAuthToken].concat(args));
+					}
+
+				});
+
+			})();
+
+		};
+	};
+
+	const ControllerState = function() {
+
+		const Db = Server.Import("/killela/include/db.esp")();
+
+		const [Permissions, UserID] = Db.Attach({
+			name : "MerchantDb",
+			path : "/data/merchant.db"
+		}, function() {
+
+			const uid = (function(){
+
+				const SessionCheck = Server.Import("/killela/include/session.esp");
+
+				return SessionCheck(function(Db, Session) {
+					if(Session.userid) {
+						return Session.userid
+					} else {
+						return Db.ExecuteScalar("SELECT ID FROM User WHERE Admin = -2");
+					}
+				})();
+
+			})();
+
+			const perm = (function(){
+
+				const AdminPermissions = {
+					AccessAttributeMapping : -1,
+					AccessOrders: -1,
+					AccessMarketplace: -1,
+					AccessAccount: -1,
+					AccessSettings: -1,
+					AccessUsers: -1,
+					AccessLinkListings: -1,
+					AccessMarketplaceMappings: -1,
+					Admin: -2
+				};
+
+				if(uid == -1) {
+
+					return AdminPermissions;
+
+				} else {
+
+					return Db.Execute("SELECT\
+						AccessAttributeMapping, \
+						AccessOrders, \
+						AccessMarketplace, \
+						AccessAccount, \
+						AccessSettings, \
+						AccessUsers, \
+						AccessLinkListings, \
+						AccessMarketplaceMappings, \
+						Admin \
+						FROM User WHERE ID = COALESCE(?, (SELECT MIN(ID) FROM User))", uid)[0]
+						||
+						AdminPermissions;
+
+				}
+
+			})();
+
+			return [perm, uid];
+
+		});
+
+		return {
+			BaseURL : BaseURL,
+			AssetBaseURL : AssetBaseURL,
+			ImageBaseURL : ImageBaseURL,
+			CacheBuster : CACHE_BUSTER,
+			SwitchURL : SwitchURL,
+			Cart : Cart,
+			CartName: CartName(Cart),
+			Compress : Compress,
+			UserID : UserID,
+			Permissions : Permissions
+		};
+
+	};
+
+	const Db = Server.Import("/killela/include/db.esp")();
+	const AuthFn = Server.Import("/killela/include/auth.esp")(Db, ControllerState());
+
+	return {
+
+		ReSubscribe : AuthFn("/killela/controllers/emailresubscribe.esp"),
+		PushAllData : AuthFn("/killela/controllers/synccron.esp"),
+		UpdateLocation : AuthFn("/killela/controllers/updatelocation.esp"),
+		PublishTemplate : AuthFn("/killela/controllers/publishtemplate.esp"),
+		UpdatePaymentMethod : AuthFn("/killela/controllers/updatepaymentmethod.esp", ControllerState),
+		UpdatePolicyMode : AuthFn("/killela/controllers/updatepolicymode.esp", ControllerState),
+		UpdateTaxHandling  : AuthFn("/killela/controllers/updatetaxhandling.esp", ControllerState),
+		UpdateDimensions : AuthFn("/killela/controllers/updatedimensions.esp", ControllerState),
+		UpdateSyncOrderStatus : AuthFn("/killela/controllers/updatesyncorderstatus.esp", ControllerState),
+		UpdateAmazonSyncOrderStatus : AuthFn("/killela/controllers/updateamazonsyncorderstatus.esp", ControllerState),
+		UpdateOrderNumber : AuthFn("/killela/controllers/updateordernumber.esp", ControllerState),
+		UpdateFeedbackMessage : AuthFn("/killela/controllers/updatefeedbackmessage.esp", ControllerState),
+		UploadLogo : InitFn("/killela/controllers/uploadlogo.esp", ControllerState),
+		AmazonAuthReturn : InitFn("/killela/controllers/amazonauthreturn.esp", ControllerState),
+		AmazonConnect : AuthFn(AttachDbs(["AmazonDb"], "/killela/controllers/amazonconnect.esp"), ControllerState),
+		AmazonDisconnect : AuthFn(AttachDbs(["AmazonDb"], "/killela/controllers/amazondisconnect.esp"), ControllerState),
+		EbayDisconnect : AuthFn("/killela/controllers/ebaydisconnect.esp"),
+		EbayEpidsPropertiesValues : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/controllers/ebayepidspropertiesvalues.esp")),
+
+		AddUser : AuthFn("/killela/controllers/adduser.esp", ControllerState),
+		EditUser : AuthFn("/killela/controllers/edituser.esp", ControllerState),
+		RemoveUser : AuthFn("/killela/controllers/removeuser.esp", ControllerState),
+
+		PollData : AuthFn("/killela/controllers/poll.esp", BaseURL),
+
+		Upgrade : AuthFn("/killela/controllers/upgrade.esp", ControllerState),
+
+		UpdateItemSpecifics : AuthFn("/killela/controllers/updateitemspecifics.esp"),
+
+		KeyData : AuthFn("/killela/controllers/keydata.esp", ControllerState),
+
+		FilterContent : AuthFn("/killela/views/filtercontent.esp", ControllerState),
+
+		ReadData : AuthFn("/killela/controllers/readdata.esp", ControllerState),
+
+		SaveData : AuthFn("/killela/controllers/savedata.esp", ControllerState),
+
+		EbayRetryPublish : AuthFn("/killela/controllers/ebayretrypublish.esp"),
+
+		AmazonRetryPublish : AuthFn("/killela/controllers/amazonretrypublish.esp", ControllerState),
+
+		RetryOrderPush : AuthFn("/killela/controllers/retryorderpush.esp"),
+		UpdateConfiguration : AuthFn("/killela/controllers/updateconfiguration.esp"),
+		Updateorderstatus : AuthFn("/killela/controllers/updateorderstatus.esp"),
+
+		StoreViewMap : AuthFn(AttachDbs(["eBayDefaultDb", "AmazonDb", "AmazonDefaultDb"], function(MerchantID, Db) {
+
+			if(Db.ExecuteScalar("\
+				SELECT CASE WHEN EXISTS(\
+					SELECT 1 \
+					FROM MerchantDb.BillingState BS \
+					WHERE BS.HeadAccountID != ? \
+				) THEN -1 ELSE 0 END", MerchantID)) {
+
+				const HeadAccountID = Db.ExecuteScalar("\
+					SELECT HeadAccountID \
+					FROM MerchantDb.BillingState BS");
+
+				const InternalNet = (Application.InternalNet || Application.NWO_INTERNALNET || ".ontech.local").replace(/^\.?/, ".");
+
+				const fcgi = new FastCGIClient();
+				fcgi.ConnectTimeout = 10000;
+				fcgi.SendTimeout = 10000;
+				fcgi.ReceiveTimeout = 120000;
+				try {
+					fcgi.Open("POST", "fastcgi://" + HeadAccountID + ".internal" + InternalNet + ":1027" + Request.ServerVariables.URL);
+					Object.keys(Request.ServerVariables)
+						.filter(function(k) { return k != "MERCHANT"; })
+						.forEach(function(k) {
+							fcgi.SetRequestHeader(k, Request.ServerVariables[k]);
+						});
+					fcgi.SetRequestHeader("MERCHANT", HeadAccountID);
+					fcgi.Send(Request);
+
+					Response.Headers["Cache-Control"] = fcgi.GetResponseHeader("Cache-Control");
+					Response.Headers["Pragma"] = fcgi.GetResponseHeader("Pragma");
+					Response.ContentType = fcgi.GetResponseHeader("Content-Type");
+					Response.BinaryWrite(fcgi);
+
+				} finally {
+
+					fcgi.Close();
+
+				}
+
+				Response.End();
+			}
+
+			Server.Import("/killela/controllers/storeviewmap.esp")(MerchantID, Db, ControllerState());
+
+		})),
+
+		ProductSearch : AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/controllers/productsearch.esp"), ControllerState),
+
+		UpdateHost : AuthFn("/killela/controllers/updatehost.esp"),
+		PaymentForm : AuthFn("/killela/controllers/paymentform.esp", "/", ControllerState),
+
+		SwitchToApp : AuthFn("/killela/controllers/switchtoapp.esp", ControllerState),
+
+		LinkGoogle : AuthFn("/killela/controllers/linkgoogle.esp", "/", ControllerState),
+		LinkKogan : AuthFn("/killela/controllers/linkkogan.esp", "/", ControllerState),
 
 
-Response.End()
+		RunGoogleChecklist : AuthFn("/killela/controllers/googlechecklist.esp", ControllerState),
+		SkipGoogleChecklist : AuthFn("/killela/controllers/skipgooglechecklist.esp", ControllerState),
+		GooglePublish : AuthFn("/killela/controllers/googlepublish.esp", ControllerState),
+		GoogleReAuth : AuthFn("/killela/controllers/googlereauth.esp", ControllerState),
+		GoogleStartCampaign : AuthFn("/killela/controllers/googlestartcampaign.esp", ControllerState),
+		GooglePlayCampaign : AuthFn("/killela/controllers/googleplaycampaign.esp", ControllerState),
+		GooglePauseCampaign : AuthFn("/killela/controllers/googlepausecampaign.esp", ControllerState),
+		GoogleDeleteCampaign : AuthFn("/killela/controllers/googledeletecampaign.esp", ControllerState),
+		GoogleEditCampaign : AuthFn("/killela/controllers/googleeditcampaign.esp", ControllerState),
+		GoogleAdAccountAssign : AuthFn("/killela/controllers/googleadaccountassign.esp", ControllerState),
+		GoogleAdAccountCreate : AuthFn("/killela/controllers/googleadaccountcreate.esp", ControllerState),
+		GoogleFixGMCSiteMatch : AuthFn("/killela/controllers/googlechecklist/sitematch.esp", ControllerState),
+		GoogleFixGMCVerify : AuthFn("/killela/controllers/googlechecklist/verify.esp", ControllerState),
+		GoogleFixTrackingScript : AuthFn("/killela/controllers/googlechecklist/tracking.esp", ControllerState),
+		GoogleFixGMCClaim : AuthFn("/killela/controllers/googlechecklist/claim.esp", ControllerState),
+		GoogleFixGMCSiteMatchIgnore : AuthFn("/killela/controllers/googlechecklist/sitematchignore.esp", ControllerState),
+		GoogleFixIgnore : AuthFn("/killela/controllers/googlechecklist/ignore.esp", ControllerState),
+		GoogleFixAccountStatusIgnore : AuthFn("/killela/controllers/googlechecklist/accountstatusignore.esp", ControllerState),
+		GoogleFixPaymentMethodVerified : AuthFn("/killela/controllers/googlechecklist/payment.esp", ControllerState),
+		GoogleFixShippingVerified : AuthFn("/killela/controllers/googlechecklist/shipping.esp", ControllerState),
+		GoogleFixShippingUpload : AuthFn("/killela/controllers/googlechecklist/shippingupload.esp", ControllerState),
+		GoogleFixShippingCheckRules : AuthFn("/killela/controllers/googlechecklist/shippingcheck.esp", ControllerState),
+		GoogleFixShippingIgnore : AuthFn("/killela/controllers/googlechecklist/shippingignore.esp", ControllerState),
+		GoogleFixTaxVerified : AuthFn("/killela/controllers/googlechecklist/tax.esp", ControllerState),
+		GoogleFixTaxUpload : AuthFn("/killela/controllers/googlechecklist/taxupload.esp", ControllerState),
+		GoogleFixTaxCheckRules : AuthFn("/killela/controllers/googlechecklist/taxcheck.esp", ControllerState),
+		GoogleFixTaxIgnore : AuthFn("/killela/controllers/googlechecklist/taxignore.esp", ControllerState),
+		GoogleFixContactDetails : AuthFn("/killela/controllers/googlechecklist/contactdetails.esp", ControllerState),
+		GoogleFixTermsAndConditions : AuthFn("/killela/controllers/googlechecklist/termsandconditions.esp", ControllerState),
+		GoogleFixRefundPolicy : AuthFn("/killela/controllers/googlechecklist/refundpolicy.esp", ControllerState),
+		GoogleFixRequestPhoneVerification : AuthFn("/killela/controllers/googlechecklist/phoneverification/requestphoneverification.esp", ControllerState),
+		GoogleFixVerifyPhoneNumber : AuthFn("/killela/controllers/googlechecklist/phoneverification/verifyphonenumber.esp", ControllerState),
+
+		WalmartShippingRules : AuthFn(AttachDbs(["WalmartDb"], "/killela/controllers/walmart/shippingrules.esp"), ControllerState),
+		LinkWalmart : AuthFn(AttachDbs(["WalmartDb"], "/killela/controllers/walmart/link.esp"), ControllerState),
+		WalmartCreds : AuthFn(AttachDbs(["WalmartDb"], "/killela/controllers/walmart/creds.esp"), ControllerState),
+
+		EbayVideoUpload : AuthFn("/killela/controllers/ebayvideoupload.esp", ControllerState),
+
+		GoogleMCCOptOut : function() {
+
+			const MerchantID = parseInt(Request.ServerVariables.MERCHANT, 10);
+
+			Server.Import("/killela/controllers/googlemccoptout.esp")(MerchantID, ControllerState);
+
+		},
+
+		LinkEbayListings : AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/controllers/ebaylinklistings.esp"), ControllerState),
+		LinkAmazonListings : AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/controllers/amazonlinklistings.esp"), ControllerState),
+		ImportSettings : AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/controllers/importsettings.esp")),
+		UpdateSyncField : AuthFn("/killela/controllers/updatesyncfield.esp"),
+		UpdateAttributeMapping : AuthFn("/killela/controllers/updateattributemapping.esp", ControllerState),
+		UpdateEbayCategories : AuthFn("/killela/controllers/updateebaycategories.esp", ControllerState),
+
+		AddEbayCategory : AuthEbayFn("/killela/controllers/addebaycategory.esp", ControllerState),
+		DeleteEbayCategory : AuthEbayFn("/killela/controllers/deleteebaycategory.esp", ControllerState),
+		ReloadEbayCategories : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/controllers/reloadebaycategories.esp")),
+		RenameEbayCategory : AuthEbayFn("/killela/controllers/renameebaycategory.esp"),
+		MoveEbayCategory : AuthEbayFn("/killela/controllers/moveebaycategory.esp"),
+
+		ReloadEbayPolicies : AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/controllers/reloadebaypolicies.esp")),
+
+		SaveAccountDetails : AuthFn("/killela/controllers/saveaccountdetails.esp"),
+		Reactivate : AuthFn("/killela/controllers/reactivate.esp", ControllerState),
+		CloseAccount : AuthFn("/killela/controllers/closeaccount.esp", ControllerState),
+
+		AddBillingRecipient : AuthFn("/killela/controllers/billingrecipientadd.esp"),
+		AddBillingInfo : AuthFn("/killela/controllers/addbillinginfo.esp"),
+		DeleteBillingRecipients : AuthFn("/killela/controllers/billingrecipientdelete.esp", ControllerState),
+
+		SaveEbayDefaults : AuthFn("/killela/controllers/ebaysavedefaults.esp"),
+
+		SaveAmazonDefaults : AuthFn("/killela/controllers/amazonsavedefaults.esp"),
+
+		SaveWalmartDefaults : AuthFn(AttachDbs(["WalmartDb"],"/killela/controllers/walmartsavedefaults.esp"), ControllerState),
+		SaveGoogleDefaults : AuthFn(AttachDbs(["GoogleDb"], "/killela/controllers/googlesavedefaults.esp")),
+		IntroViewed : AuthFn("/killela/controllers/introviewed.esp"),
+		AmazonEPRDismiss : AuthFn("/killela/controllers/amazoneprdismiss.esp"),
+		HideWizard : AuthFn("/killela/controllers/hidewizard.esp"),
+		RefreshCurrency : AuthFn("/killela/controllers/refreshcurrency.esp"),
+		UpdateCurrencies : AuthFn("/killela/controllers/updatecurrencies.esp", ControllerState),
+		UpdateEbaySite : AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/controllers/updateebaysite.esp"), ControllerState),
+		ClearIntroState : AuthFn("/killela/controllers/clearintrostate.esp"),
+		EnterpriseEnquiry : AuthFn("/killela/controllers/enterpriseenquiry.esp"),
+		EbayOutOfStockControl : AuthFn(AttachDbs(["eBayMerchantDb"],"/killela/controllers/ebayoutofstockcontrol.esp"), ControllerState),
+		ShowOutOfStockControl : AuthFn(AttachDbs(["eBayMerchantDb"],"/killela/controllers/showoutofstockcontrol.esp"), ControllerState)
+	}
+}
+
+function ViewObject() {
+
+	const self = this;
+
+	const MerchantID = parseInt(Request.ServerVariables.MERCHANT, 10);
+
+	const MerchantURL = Request.ServerVariables.HTTP_HOST;
+
+	const BaseURL = Request.ServerVariables.HTTP_X_ADMIN_BASE_URL
+					|| ("https://" + MerchantURL + "/" + MerchantID + "/");
+
+	const Manage = /^https?:\/\/(?:zendesk\.codisto\.com|ontech\.codisto\.com|[a-zA-Z0-9-]+\.ezimerchant\.com)\.?(?::\d+)?\//.test(BaseURL);
+	const Enterprise = /^https?:\/\/(?:enterprise\.codisto\.com|channelcloud\.codisto\.com|plus\.codisto\.com|zendesk\.codisto\.com\/frame\/enterprise)\.?(?::\d+)?\//.test(BaseURL);
+	const NewWindow = (function(){
+
+		if("newwindow" in Request.QueryString) {
+			Response.Cookies.newwindow = 'true';
+			Response.Cookies.newwindow.Path = "/";
+			Response.Cookies.newwindow.Secure = true;
+			Response.Cookies.newwindow.SameSite = "None";
+			Response.Cookies.newwindow.HttpOnly = true;
+
+			return true;
+		}
+
+		if("HTTP_SEC_FETCH_DEST" in Request.ServerVariables
+		&& Request.ServerVariables.HTTP_SEC_FETCH_DEST == "iframe") {
+			return false;
+		}
+
+		return ("newwindow" in Request.Cookies) ? true : false;
+
+	})();
+
+	const SwitchURL = function(BaseUrl) {
+
+		const SaaS = /^https?:\/\/[^\/]+\/\d+\//.test(BaseURL);
+		if(SaaS) { //BigCommerce|Shopify|Ecwid
+
+			return BaseUrl.replace(/^(https?:\/\/[^\/]+)\/\d+\//, "$1/{merchantid}/");
+
+		}
+
+		if(Manage) {
+			return BaseUrl.replace(/^(https?:\/\/(?:zendesk\.codisto\.com|ontech\.codisto\.com|[a-zA-Z0-9-]+\.ezimerchant\.com)\.?(?::\d+)?\/.*)\/\d+\//, "$1/{merchantid}/");
+		}
+
+		//WooCommerce|Magento|PrestaShop
+		return BaseUrl.replace(/\/\d+\/\d+\//, "/{storeid}/{merchantid}/");
+
+	};
+
+	const Cart = Request.QueryString.carttest
+			|| Request.ServerVariables.HTTP_X_CODISTO_CART
+			|| (/^shopify\.codisto\.com\.?(?:$|:)|^shopui\.codisto\.com\.?(?:$|:)/.test(Request.ServerVariables.HTTP_HOST) ? "shopify" : "")
+			|| (/^(channelcloud|enterprise|plus)\.codisto\.com\.?(?:$|:)/.test(Request.ServerVariables.HTTP_HOST) ? "cloud" : "")
+			|| (/^bc\.codisto\.com\.?(?:$|:)/.test(Request.ServerVariables.HTTP_HOST) ? "bigcommerce" : "")
+			|| (/^ecwid\.codisto\.com\.?(?:$|:)/.test(Request.ServerVariables.HTTP_HOST) ? "ecwid" : "")
+			|| "magento";
+
+	const CartName = function(Cart) {
+
+		return {
+			"magento" : "Magento",
+			"woocommerce" : "WooCommerce",
+			"shopify" : "Shopify",
+			"bigcommerce" : "BigCommerce",
+			"ecwid" : "Webstore",
+			"prestashop" : "PrestaShop"
+		}[Cart] || "Cart";
+
+	};
+
+	let UserID = 0;
+
+	const ViewState = function() {
+
+		const Db = Server.Import("/killela/include/db.esp")();
+
+		const [Permissions, UserID, CartType] = Db.Attach({
+			name : "MerchantDb",
+			path : "/data/merchant.db"
+		}, function() {
+
+			const uid = (function(){
+
+				const SessionCheck = Server.Import("/killela/include/session.esp");
+				return SessionCheck(function(Db, Session) {
+
+					if(Session.userid) {
+						return Session.userid
+					} else {
+						return Db.ExecuteScalar("SELECT ID FROM User WHERE Admin = -2");
+					}
+
+				})();
+
+			})();
+
+			const cart = (function(){
+				if(Cart == "cloud") {
+					return Db.ExecuteScalar("SELECT Solution FROM Host WHERE Name = 'Enterprise' OR Type = 'alternate'") || "cloud";
+				}
+				return Cart;
+			})();
+
+			// Add more carts where required here
+			if(cart == "shopify"
+				&& "scopesauthed" in Request.QueryString) {
+
+				Db.Execute("UPDATE Host SET AccessScopeMissing = '' WHERE Mode = 'SHOPIFY'");
+
+			}
+
+			const perm = (function(){
+
+				const AdminPermissions = {
+					AccessAttributeMapping : -1,
+					AccessOrders: -1,
+					AccessMarketplace: -1,
+					AccessAccount: -1,
+					AccessSettings: -1,
+					AccessUsers: -1,
+					AccessLinkListings: -1,
+					AccessMarketplaceMappings: -1,
+					Admin: -2
+				};
+
+				if(uid == -1) {
+
+					return AdminPermissions;
+
+				} else {
+
+					return Db.Execute("SELECT\
+						AccessAttributeMapping, \
+						AccessOrders, \
+						AccessMarketplace, \
+						AccessAccount, \
+						AccessSettings, \
+						AccessUsers, \
+						AccessLinkListings, \
+						AccessMarketplaceMappings, \
+						Admin \
+						FROM User WHERE ID = COALESCE(?, (SELECT MIN(ID) FROM User))", uid)[0]
+						||
+						AdminPermissions;
+
+				}
+
+			})();
+
+			return [perm, uid, cart];
+
+		});
+
+		return {
+			BaseURL : BaseURL,
+			AssetBaseURL : AssetBaseURL,
+			ImageBaseURL : ImageBaseURL,
+			CacheBuster : CACHE_BUSTER,
+			Cart : CartType,
+			CartName : CartName(CartType),
+			SwitchURL : SwitchURL,
+			Compress : Compress,
+			Manage : Manage,
+			Permissions : Permissions,
+			Enterprise : Enterprise,
+			NewWindow : NewWindow,
+			UserID : UserID
+		};
+
+	};
+
+	const PublicViewState = function() {
+
+		return {
+			BaseURL : BaseURL,
+			AssetBaseURL : AssetBaseURL,
+			ImageBaseURL : ImageBaseURL,
+			CacheBuster : CACHE_BUSTER,
+			Cart : Cart,
+			CartName : CartName(Cart),
+			SwitchURL : SwitchURL,
+			Compress : Compress,
+			Manage : Manage,
+			Permissions : null,
+			Enterprise : Enterprise,
+			NewWindow : NewWindow,
+			UserID : null
+		};
+
+	};
+
+	const PublicFn = function(f) {
+
+		const viewargs = Array.prototype.slice.call(arguments, 1);
+
+		return function() {
+
+			const args = Array.prototype.slice.call(arguments, 0)
+							.concat(viewargs)
+							.map(function(arg) {
+
+								return typeof(arg) === "function" ? arg() : arg;
+
+							});
+
+			if(typeof(f) === "string") {
+				Server.Import(f).apply(self, args);
+			} else {
+				f.apply(self, args);
+			}
+
+		};
+
+	};
+
+	const Db = Server.Import("/killela/include/db.esp")();
+	const AuthFn = Server.Import("/killela/include/auth.esp")(Db, ViewState());
+
+	return {
+
+		AmazonCategories : AuthFn("/killela/views/amazoncategories.esp", ViewState),
+		AmazonSubCategories : AuthFn("/killela/views/amazonsubcategories.esp", ViewState),
+
+		LinkEbayOAuth : function() { Server.Import("/killela/views/ebaylinkoauth.esp")(MerchantID, BaseURL, ViewState()); },
+		LinkEbay : function() {
+
+			const Db = Server.Import("/killela/include/db.esp")();
+
+			Db.Attach({
+				name : "MerchantDb",
+				path : "/data/merchant.db"
+			}, function() {
+
+				Server.Import("/killela/views/ebaylink.esp")(MerchantID, Db, Request.ServerVariables.URL, ViewState());
+
+			});
+
+		},
+
+		LinkGoogle : function() {
+
+			const Db = Server.Import("/killela/include/db.esp")();
+			try {
+
+				Db.Attach({
+					name : "MerchantDb",
+					path : "/data/merchant.db",
+					forRead : true
+				}, function() {
+
+					Server.Import("/killela/views/linkgoogle.esp")(MerchantID, Db, Request.ServerVariables.URL, ViewState());
+
+				});
+
+			} finally {
+
+				Db.Close();
+			}
+
+		},
+
+		LinkKogan : AuthFn(AttachDbs(["AmazonDb"], "/killela/views/linkkogan.esp"), ViewState),
+		LinkWalmart : AuthFn(AttachDbs(["WalmartDb"], "/killela/views/linkwalmart.esp"), ViewState),
+		LinkAmazon : AuthFn(AttachDbs(["AmazonDb"], "/killela/views/amazonlink.esp"), ViewState),
+
+		LinkEbayNew : function() {
+
+			const Db = Server.Import("/killela/include/db.esp")();
+
+			Db.Attach({
+				name : "MerchantDb",
+				path : "/data/merchant.db"
+			}, function() {
+
+				Server.Import("/killela/views/ebaylinknew.esp")(MerchantID, Db, Request.ServerVariables.URL, ViewState());
+
+			});
+
+		},
+
+		ReAuth : function(URL) {
+
+			Server.Import("/killela/views/reauth.esp")(MerchantID, URL, ViewState());
+
+		},
+
+		ReAuthEbay : function(URL) {
+
+			const Db = Server.Import("/killela/include/db.esp")();
+
+			Db.Attach({
+				name : "MerchantDb",
+				path : "/data/merchant.db",
+				forRead : true
+			}, function() {
+
+				Server.Import("/killela/views/reauthebay.esp")(MerchantID, Db, URL, ViewState());
+
+			});
+
+		},
+
+		EbayCategoryTable : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaycategorytables.esp")),
+
+		EbaySubCategories : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaysubcategories.esp", ViewState)),
+		EbayPropertyValues : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaypropertyvalues.esp", ViewState)),
+
+		EditItemSpecifics : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "Location"], "/killela/views/ebayitemspecifics.esp")),
+
+		EbayVideoStatus : AuthFn("/killela/views/ebayvideostatus.esp", ViewState),
+
+		AmazonItemRedirect : AuthFn("/killela/views/amazonitemredirect.esp", ViewState),
+		EbayItemRedirect : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebayitemredirect.esp", ViewState)),
+		GoogleItemRedirect : AuthFn("/killela/views/googleitemredirect.esp", ViewState),
+		KoganItemRedirect : AuthFn("/killela/views/koganitemredirect.esp", ViewState),
+		WalmartItemRedirect : AuthFn("/killela/views/walmartitemredirect.esp", ViewState),
+
+		EbayCategoryRedirect : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaycategoryredirect.esp")),
+
+		AmazonCategoryRedirect : AuthFn(AttachDbs(["AmazonDb", "AmazonDefaultDb"], "/killela/views/amazoncategoryredirect.esp")),
+
+		ManageListings : AuthFn("/killela/views/managelistings.esp", ViewState),
+
+		EbayBulkEditorRedirect : function() {
+
+			const CurrentURL = ViewState().BaseURL + Request.ServerVariables.URL.replace(/^\//, "").replace(/ebayedit\//, "ebay/");
+
+			Response.Status = "303 See Other";
+			Response.Expires = new Date(0);
+			Response.Headers["Cache-Control"] = "no-cache";
+			Response.Headers.Location = CurrentURL;
+			Response.End();
+		},
+		EbayBulkEditor : AuthFn("/killela/views/ebaybulkeditor.esp", ViewState),
+		AmazonBulkEditor : AuthFn("/killela/views/amazonbulkeditor.esp", ViewState),
+		GoogleBulkEditor : AuthFn("/killela/views/googlebulkeditor.esp", ViewState),
+		KoganBulkEditor : AuthFn("/killela/views/koganbulkeditor.esp", ViewState),
+		WalmartBulkEditor : AuthFn("/killela/views/walmartbulkeditor.esp", ViewState),
+
+		CategoryEditor : AuthFn("/killela/views/categoryeditor.esp", ViewState),
+
+		AmazonProductEdit : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "AmazonDb", "AmazonDefaultDb", "Location"], "/killela/views/amazonproductedit.esp", ViewState)),
+		EbayProductEdit : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "AmazonDb", "AmazonDefaultDb", "Location"], "/killela/views/ebayproductedit.esp", ViewState)),
+		GoogleProductEdit : AuthFn(AttachDbs(["GoogleDb", "Location", "GoogleDefaultDb"], "/killela/views/googleproductedit.esp", ViewState)),
+		KoganProductEdit : AuthFn(AttachDbs(["GoogleDb", "Location", "GoogleDefaultDb"], "/killela/views/koganproductedit.esp", ViewState)),
+		WalmartProductEdit : AuthFn(AttachDbs(["WalmartDb", "Location", "WalmartDefaultDb"], "/killela/views/walmartproductedit.esp", ViewState)),
+
+		Product : AuthFn(AttachDbs(["eBayMerchantDb", "AmazonDb", "eBayDefaultDb", "AmazonDefaultDb", "Location"], "/killela/views/product.esp", ViewState)),
+
+		ProductEbayErrors : AuthFn("/killela/views/ebayerrors.esp", ViewState),
+		ProductGoogleErrors : AuthFn(AttachDbs(["GoogleDb"], "/killela/views/googleerrors.esp", ViewState)),
+		ProductKoganErrors : AuthFn(AttachDbs(["KoganDb"], "/killela/views/koganerrors.esp", ViewState)),
+		ProductWalmartErrors : AuthFn(AttachDbs(["WalmartDb"], "/killela/views/walmarterrors.esp", ViewState)),
+
+		ProductAmazonErrors : AuthFn("/killela/views/amazonerrors.esp", ViewState),
+		ProductAmazonDetailErrors : AuthFn("/killela/views/amazondetailerrors.esp", ViewState),
+
+		OrderErrors : AuthFn("/killela/views/ordererrors.esp", ViewState),
+
+		ProductEbayCategorySuggestions : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "Location"], "/killela/views/ebaycategorysuggestions.esp")),
+
+		ProductEbayItemSpecifics : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebayitemspecifics.esp")),
+
+		ProductEbayCategoryChooser : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaycategorychooser.esp", ViewState)),
+
+		ProductEbayStoreCategoryChooser : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaystorecategorychooser.esp")),
+
+		ProductAmazonCategorySearch : AuthFn(AttachDbs(["AmazonDefaultDb", "AmazonDb"], "/killela/views/amazoncategorysearch.esp", ViewState)),
+
+		OrderSetting : AuthFn(AttachDbs(["AmazonDefaultDb", "AmazonDb","eBayDefaultDb","ebaymerchantdb"], "/killela/views/ordersetting.esp", ViewState)),
+
+		ProductAmazonCategoryChooser : AuthFn(AttachDbs(["AmazonDefaultDb", "AmazonDb"], "/killela/views/amazoncategorychooser.esp", ViewState)),
+		ProductAmazonListingCreation : AuthFn(AttachDbs(["AmazonDefaultDb", "AmazonDb"], "/killela/views/amazonlistingcreation.esp", ViewState)),
+
+		ProductAmazonBatteryInfo : AuthFn(AttachDbs(["AmazonDefaultDb", "AmazonDb"], "/killela/views/amazonbatteryinfo.esp", ViewState)),
+
+		ProductAmazonProp65Info : AuthFn(AttachDbs(["AmazonDefaultDb", "AmazonDb"], "/killela/views/amazonprop65info.esp", ViewState)),
+
+		ProductAmazonSKU : AuthFn("/killela/views/amazonsku.esp", ViewState),
+
+		ClientScript : PublicFn("/killela/views/clientscript.esp", ViaCDN, ViewState),
+
+		ClientStyle : PublicFn("/killela/views/clientstyle.esp", ViaCDN, ViewState),
+
+		Status : AuthFn("/killela/views/status.esp", ViewState),
+
+		QuotaUsage : AuthFn(AttachDbs(["eBayDefaultDb", "AmazonDefaultDb"], "/killela/views/quotausage.esp"), ViewState),
+
+		Upgrade : AuthFn(AttachDbs(["Location", "eBayDefaultDb"], "/killela/views/upgrade.esp", ViewState)),
+
+		AccountSettings : AuthFn("/killela/views/accountsettings.esp", ViewState),
+
+		CurrencyQuote : AuthFn("/killela/views/currencyquote.esp", ViewState),
+
+		Currencies : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "AmazonDefaultDb", "Location"], "/killela/views/currencies.esp", ViewState)),
+
+		Settings : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "AmazonDefaultDb", "GoogleDefaultDb", "Location"], "/killela/views/settings.esp", ViewState)),
+
+		Orders : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "Location"], "/killela/views/orders.esp", ViewState)),
+
+		SyncPoll : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "Location"], "/killela/views/syncpoll.esp")),
+
+		GetAscInstallStatus : AuthFn("/killela/views/ascinstallstatus.esp"),
+
+		GetEbayRateTables : AuthFn("/killela/views/ebayratetables.esp"),
+
+		SearchEbayPolicies : AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/views/searchebaypolicies.esp")),
+
+		TestMerchantEndpoint : AuthFn("/killela/views/testmerchantendpoint.esp"),
+
+		Mappings : AuthFn("/killela/views/mappings.esp", ViewState),
+
+		Connections : AuthFn("/killela/views/connections.esp", ViewState),
+		Home : AuthFn(AttachDbs(["Location"], "/killela/views/home.esp", ViewState)),
+		Nav : AuthFn(AttachDbs(["Location"], "/Coternal/views/nav.esp", ViewState)),
+
+		Dashboard : AuthFn("/killela/views/dashboard.esp", ViewState),
+		GoogleReport :  AuthFn("/killela/views/googlereport.esp", ViewState),
+
+		Notification : AuthFn("/killela/views/notification.esp", ViewState),
+		Notifications : AuthFn("/killela/views/notifications.esp", ViewState),
+
+		ReAuthCart : AuthFn("/killela/views/reauthcart.esp", ViewState),
+		ConnectShopify : AuthFn("/killela/views/connectshopify.esp", ViewState),
+		ConnectBigCommerce : AuthFn("/killela/views/connectbigcommerce.esp", ViewState),
+
+		EnterpriseAgreement : AuthFn("/killela/views/enterpriseagreement.esp", ViewState),
+
+		Account : AuthFn("/killela/views/account.esp", ViewState),
+		Invoice : AuthFn("/killela/views/invoice.esp", ViewState),
+		InvoicePrint : AuthFn("/killela/views/invoiceprint.esp"),
+		Orderstatus : AuthFn("/killela/views/orderstatus.esp", ViewState),
+		InvoicePDF : PublicFn(function(ViewState) {
+
+			if(("APP" in Request.ServerVariables)
+				&& Request.ServerVariables.APP === "thirroul") {
+
+				const Db = Server.Import("/killela/include/db.esp")();
+
+				Db.Attach({
+					name : "MerchantDb",
+					path : "/data/merchant.db"
+				}, function() {
+
+					Server.Import("/killela/views/invoice.esp")(MerchantID, Db, Request.ServerVariables.URL, Request.QueryString.invoice, ViewState);
+
+				});
+
+			} else {
+
+				throw new Error("unauthenticated");
+
+			}
+
+		}, ViewState),
+		Payment : AuthFn("/killela/views/payment.esp"),
+		ClosedAccount : AuthFn("/killela/views/closedaccount.esp", ViewState),
+		ShopifyBilling : AuthFn("/killela/views/shopifybilling.esp"),
+		ShopifyBillingLegacy : AuthFn("/killela/views/shopifybillinglegacy.esp"),
+
+		AttributeMapping : AuthFn("/killela/views/attributemapping.esp", ViewState),
+
+		EbayAttributeMapping : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "AmazonDefaultDb"],
+			"/killela/views/ebayattributemapping.esp", ViewState)),
+
+		EbayStatusFormulaValidate : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaystatusforumlavalidate.esp", ViewState)),
+
+		FormulaValidate : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb", "AmazonDb", "AmazonDefaultDb", "WalmartDb", "WalmartDefaultDb"], "/killela/views/forumlavalidate.esp", ViewState)),
+
+		WalmartCategoriesView : AuthFn(AttachDbs(["WalmartDb", "WalmartDefaultDb"], "/killela/views/walmartcategoriesview.esp", ViewState)),
+
+		AmazonProductTypesView : AuthFn(AttachDbs(["AmazonDb", "AmazonDefaultDb"], "/killela/views/amazonproducttypesview.esp", ViewState)),
+
+		AmazonProductTypes : AuthFn(AttachDbs(["AmazonDb", "AmazonDefaultDb"], "/killela/views/amazonproducttypes.esp"), ViewState),
+
+		AmazonVariationTheme : AuthFn(AttachDbs(["amazondefaultdb", "amazondb"], "/killela/views/amazonvariationtheme.esp", ViewState)),
+
+		AmazonAttributeMapping : AuthFn(AttachDbs(["eBayDefaultDb", "AmazonDb", "AmazonDefaultDb"],
+			"/killela/views/amazonattributemapping.esp", ViewState)),
+
+		GoogleAttributeMapping : AuthFn("/killela/views/googleattributemapping.esp", ViewState),
+		KoganAttributeMapping : AuthFn("/killela/views/koganattributemapping.esp", ViewState),
+		WalmartAttributeMapping : AuthFn(AttachDbs(["AmazonDefaultDb", "eBayDefaultDb", "WalmartDb", "WalmartDefaultDb"],
+			"/killela/views/walmartattributemapping.esp", ViewState)),
+
+		WalmartCategories : AuthFn(AttachDbs(["WalmartDb", "WalmartDefaultDb"], "/killela/views/walmartcategories.esp"), ViewState),
+
+		TitleResult : AuthFn("/killela/views/titleresult.esp"),
+
+		EbayPaymentRedirect : AuthFn(AttachDbs(["eBayDefaultDb", "eBayMerchantDb"], "/killela/views/ebaypaymentredirect.esp")),
+		UpdateConfiguration : AuthFn("/killela/controllers/updateconfiguration.esp"),
+		EbaySaleRef : PublicFn(function() {
+
+			const Db = Server.Import("/killela/include/db.esp")();
+
+			Db.Attach([{
+				name : "MerchantDb",
+				path : "/data/merchant.db",
+				forRead : true
+			}, {
+				name : "eBayDefaultDb",
+				path : "/ebay/collaroy.db",
+				forRead : true
+			}, {
+				name : "eBayMerchantDb",
+				path : "/data/ebay.db",
+				transient : true,
+				forRead : true
+			}], function() {
+
+				Server.Import("/killela/views/ebaysalesdeeplink.esp")(MerchantID, Db, Request.ServerVariables.URL);
+
+			});
+
+		}),
+
+		EbaySaleRedirect : AuthFn(AttachDbs(["eBayDefaultDb", "eBayMerchantDb"], "/killela/views/ebaysalesredirect.esp")),
+
+		WalmartSaleRef : PublicFn(function() {
+
+			const Db = Server.Import("/killela/include/db.esp")();
+
+			Db.Attach({
+				name : "MerchantDb",
+				path : "/data/merchant.db",
+				forRead : true
+			}, function() {
+
+				Server.Import("/killela/views/walmartsalesdeeplink.esp")(MerchantID, Db, Request.ServerVariables.URL);
+
+			});
+
+		}),
+
+		WalmartSaleRedirect : AuthFn("/killela/views/walmartsalesredirect.esp", ViewState),
+
+		AmazonLinkError : AuthFn("/killela/views/amazonlinkerror.esp",ViewState),
+
+		AmazonSellerError : AuthFn("/killela/views/amazonsellererror.esp",ViewState),
+
+		AmazonSaleRef : PublicFn(function() {
+
+			const Db = Server.Import("/killela/include/db.esp")();
+
+			Db.Attach([{
+				name : "MerchantDb",
+				path : "/data/merchant.db",
+				forRead : true
+			}, {
+				name : "AmazonDefaultDb",
+				path : "/amazon/hyams.db",
+				transient : true,
+				forRead : true
+			}, {
+				name : "AmazonDb",
+				path : "/data/amazon.db",
+				forRead : true
+			}], function() {
+
+				Server.Import("/killela/views/amazonsalesdeeplink.esp")(MerchantID, Db, Request.ServerVariables.URL);
+
+			});
+
+		}),
+
+		AmazonSaleRedirect : AuthFn(AttachDbs(["AmazonDefaultDb", "AmazonDb"], "/killela/views/amazonsalesredirect.esp")),
+
+		EbayUserRedirect : AuthFn("/killela/views/ebayuserredirect.esp"),
+
+		BillingRecipientPoll : AuthFn("/killela/views/billingrecipientpoll.esp", ViewState),
+
+		MarketplaceOrder : AuthFn("/killela/views/marketplaceorder.esp"),
+
+		ProductNew : AuthFn("/killela/views/productnew.esp", ViewState),
+
+		ProductsFiltered : AuthFn("/killela/views/productsfiltered.esp"),
+
+		Customer : AuthFn("/killela/views/customer.esp"),
+
+		CartTransfer : PublicFn("/killela/views/carttransfer.esp", MerchantID, ViewState),
+
+		DefaultApp : AuthFn(function(MerchantID, Db, URL, ViewState) {
+
+			Response.Redirect(ViewState.BaseURL + "home/");
+
+		}),
+
+		ShopifyProxy : "/killela/views/shopifyproxy.esp",
+
+		GoogleMCCLink : PublicFn("/killela/views/googlemcclink.esp", MerchantID, ViewState),
+
+		ZendeskID : AuthFn("/killela/views/zendeskidentity.esp"),
+
+		ErrorHandler : "/killela/views/clienterrorhandler.esp",
+
+		EbayAvatar : "/killela/views/ebayavatar.esp",
+
+		AmazonAvatar : "/killela/views/amazonavatar.esp",
+
+		EmailUnsubscribe : PublicFn("/killela/views/emailunsubscribe.esp", MerchantID, ViewState),
+
+		TemplatePreview : AuthFn("/killela/views/templateeditor.esp", ViewState),
+
+		TemplateEditorRedirect : AuthFn("/killela/views/templateeditorredirect.esp"),
+
+		AmazonPreview : AuthFn("/killela/views/amazonpreview.esp", ViewState),
+
+		EbayPreview : AuthFn("/killela/views/ebaypreview.esp", ViewState),
+
+		ProductList : AuthFn("/killela/views/productlist.esp", ViewState),
+		AdvanceSearch : AuthFn("/killela/views/advancesearch.esp", ViewState),
+		ProductSearch : AuthFn("/killela/views/productsearch.esp", ViewState),
+		AmazonProductSearch : AuthFn("/killela/views/amazonproductsearch.esp", ViewState),
+
+		WalmartWizard : AuthFn(AttachDbs(["WalmartDb", "WalmartDefaultDb"], "/killela/views/walmartwizard.esp", ViewState)),
+
+		EbayWizard : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/ebaywizard.esp", ViewState)),
+
+		AmazonWizard : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/amazonwizard.esp", ViewState)),
+
+		GoogleWizard : AuthFn(AttachDbs(["GoogleDb", "GoogleDefaultDb"], "/killela/views/googlewizard.esp", ViewState)),
+
+		AmazonProductType : AuthFn(AttachDbs(["amazondefaultdb", "amazondb"], "/killela/views/amazonproducttype.esp", ViewState)),
+
+		AmazonItemType : AuthFn(AttachDbs(["amazondefaultdb", "amazondb"], "/killela/views/amazonitemtype.esp", ViewState, ViewState)),
+
+		AmazonASINWizard : AuthFn(AttachDbs(["amazondefaultdb", "amazondb"], "/killela/views/amazonasinwizard.esp", ViewState)),
+
+		EbayProductSearch : AuthFn("/killela/views/ebayproductsearch.esp", ViewState),
+
+		ImportListings : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/importlistings/index.esp", ViewState)),
+
+		ImportListingsEbay : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/importlistings/ebay/index.esp", ViewState)),
+		ImportStatusEbay :  AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/views/importlistings/ebay/status.esp", ViewState)),
+		LinkingStatusEbay :  AuthFn(AttachDbs(["eBayMerchantDb"], "/killela/views/importlistings/ebay/linkingstatus.esp", ViewState)),
+		ImportListingsEbaySKUMatch : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/importlistings/ebay/listingsskumatch.esp", ViewState)),
+		ImportListingsEbayFuzzyMatch : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/importlistings/ebay/listingsfuzzymatch.esp", ViewState)),
+		ImportListingsEbayNoMatch : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/importlistings/ebay/listingsnomatch.esp", ViewState)),
+		ImportListingsEbayImportRules : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/importlistings/ebay/listingsrules.esp", ViewState)),
+		ImportListingsEbaySummary : AuthFn(AttachDbs(["eBayMerchantDb", "eBayDefaultDb"], "/killela/views/importlistings/ebay/summary.esp", ViewState)),
+
+		ImportListingsAmazon : AuthFn(AttachDbs(["AmazonDb", "amazondefaultdb", "eBayDefaultDb"], "/killela/views/importlistings/amazon/index.esp", ViewState)),
+		ImportStatusAmazon :  AuthFn(AttachDbs(["AmazonDb"], "/killela/views/importlistings/amazon/status.esp", ViewState)),
+		LinkingStatusAmazon :  AuthFn(AttachDbs(["AmazonDb"], "/killela/views/importlistings/amazon/linkingstatus.esp", ViewState)),
+		ImportListingsAmazonSKUMatch : AuthFn(AttachDbs(["AmazonDb", "amazondefaultdb", "eBayDefaultDb"], "/killela/views/importlistings/amazon/listingsskumatch.esp", ViewState)),
+		ImportListingsAmazonFuzzyMatch : AuthFn(AttachDbs(["AmazonDb", "amazondefaultdb", "eBayDefaultDb"], "/killela/views/importlistings/amazon/listingsfuzzymatch.esp", ViewState)),
+		ImportListingsAmazonNoMatch : AuthFn(AttachDbs(["AmazonDb", "amazondefaultdb", "eBayDefaultDb"], "/killela/views/importlistings/amazon/listingsnomatch.esp", ViewState)),
+		ImportListingsAmazonImportRules : AuthFn(AttachDbs(["AmazonDb", "amazondefaultdb", "eBayDefaultDb"], "/killela/views/importlistings/amazon/listingsrules.esp", ViewState)),
+		ImportListingsAmazonSummary : AuthFn(AttachDbs(["AmazonDb", "amazondefaultdb", "eBayDefaultDb"], "/killela/views/importlistings/amazon/summary.esp", ViewState)),
+
+		LoginPaymentForm : AuthFn("/killela/views/loginpaymentform.esp", ViewState),
+		PaymentForm : AuthFn("/killela/controllers/paymentform.esp", ViewState),
+		PaymentSuccess : PublicFn("/killela/controllers/paymentsuccess.esp", MerchantID, PublicViewState),
+		PaymentFailed : PublicFn("/killela/controllers/paymentfailed.esp", MerchantID, PublicViewState),
+
+		SimpleEditEbay : AuthFn("/killela/views/simpleeditebay.esp", ViewState),
+		SimpleEditAmazon : AuthFn("/killela/views/simpleeditamazon.esp", ViewState),
+		SimpleEditGoogle : AuthFn("/killela/views/simpleeditgoogle.esp", ViewState),
+		SimpleEditKogan : AuthFn("/killela/views/simpleeditkogan.esp", ViewState),
+		SimpleEditWalmart : AuthFn("/killela/views/simpleeditwalmart.esp", ViewState),
+
+		GoogleChecklist : AuthFn("/killela/views/googlechecklist.esp", ViewState),
+		GoogleChecklistStatus : AuthFn("/killela/views/googlecheckliststatus.esp", ViewState),
+		GoogleChecklistFix : AuthFn("/killela/views/googlechecklistfix.esp", ViewState),
+		GoogleCampaign : AuthFn("/killela/views/googlecampaign.esp", ViewState),
+		GoogleMetrics : AuthFn("/killela/views/googlemetrics.esp", ViewState),
+		GoogleProductMetrics : AuthFn("/killela/views/googleproductmetrics.esp", ViewState),
+
+		GoogleCategoryChooser : AuthFn(AttachDbs(["GoogleDefaultDb", "GoogleDb"], "/killela/views/googlecategorychooser.esp", ViewState)),
+		KoganCategoryChooser : AuthFn(AttachDbs(["KoganDefaultDb", "KoganDb"], "/killela/views/kogancategorychooser.esp", ViewState)),
+		WalmartCategoryChooser : AuthFn(AttachDbs(["WalmartDefaultDb", "WalmartDb"], "/killela/views/walmartcategorychooser.esp", ViewState)),
+		WalmartShippingChooser : AuthFn(AttachDbs(["WalmartDefaultDb", "WalmartDb", "Location"], "/killela/views/walmartshippingchooser.esp", ViewState)),
+		WalmartShippingNew : AuthFn(AttachDbs(["WalmartDefaultDb", "WalmartDb", "Location"], "/killela/views/walmartshippingnew.esp", ViewState)),
+		WalmartShippingEdit : AuthFn(AttachDbs(["WalmartDefaultDb", "WalmartDb", "Location"], "/killela/views/walmartshippingedit.esp", ViewState)),
+
+		GoogleSubCategories : AuthFn(AttachDbs(["GoogleDefaultDb", "GoogleDb"], "/killela/views/googlesubcategories.esp", ViewState)),
+		KoganSubCategories : AuthFn(AttachDbs(["KoganDefaultDb", "KoganDb"], "/killela/views/kogansubcategories.esp", ViewState)),
+
+		TimeZone : AuthFn("/killela/views/timezone.esp", ViewState),
+		GoogleShippingPopulated : AuthFn("/killela/views/googleshippingpopulated.esp", ViewState),
+		GoogleListingPopulated : AuthFn("/killela/views/googlelistingpopulated.esp", ViewState),
+
+		Analytics : AuthFn("/killela/views/analytics/index.esp", ViewState),
+
+		EbayListingReport : AuthFn("/killela/views/ebaylistingreport.esp", ViewState),
+		AmazonListingReport : AuthFn("/killela/views/amazonlistingreport.esp", ViewState),
+
+		Default : PublicFn("/killela/views/default.esp", MerchantID, ViewState)
+
+	};
+}
+
+function CheckSiteHost(Db, ViewState) {
+
+	try {
+
+		const VisitingURL = ViewState.BaseURL.match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/)[1];
+		const RegisteredSite = Db.ExecuteScalar("SELECT URL FROM Host WHERE Type = 'alternate'").match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/)[1];
+
+		if(!/\.codisto.com\.?$/.test(VisitingURL)) {
+
+			if(RegisteredSite != VisitingURL) {
+				const MerchantID = parseInt(Request.ServerVariables.MERCHANT, 10);
+				if(MerchantID) {
+					Server.Import("/killela/views/sitenotmatched.esp")(Db, MerchantID, ViewState);
+				}
+			}
+
+		}
+
+	} catch(e) {
+
+	}
+
+}
+
+function SetAttribution(Db, Cart) {
+
+	if(!Db.ExecuteScalar("\
+		SELECT AttributionSource \
+		FROM MerchantState")) {
+
+		if(Db.ExecuteScalar("\
+			SELECT CASE WHEN EXISTS(\
+				SELECT 1 \
+				FROM MerchantDb.BillingState BS \
+				WHERE BS.HeadAccountID = BS.MerchantID) THEN 0 ELSE -1 END")) {
+
+			Db.Execute("UPDATE MerchantState SET AttributionSource = 'subaccount'");
+
+		} else if("codistoparams" in Request.QueryString) {
+
+			let [CodistoSource, Params] = (function(){
+
+				let utms = {};
+				let codistosource = "web";
+				let obj = {};
+
+				try {
+
+					obj = JSON.parse(Base64.Decode(Request.QueryString.codistoparams).replace(/\\/g, "").replace(/^\"|"$/g, ""));
+
+				} catch(e) {
+
+				}
+
+				try {
+
+					if(obj
+						&& typeof(obj) === "object") {
+
+						Object.keys(obj).forEach(function(qs) {
+
+							if(/^utm_|glcid/.test(qs)) {
+								utms[qs] = obj[qs];
+							}
+							if(/utm_source/.test(qs)) {
+								codistosource = obj[qs];
+							}
+
+						});
+
+					}
+
+				} catch(e) {
+
+				}
+
+				return [codistosource, utms];
+
+			})();
+
+			if("ga" in Request.QueryString){
+				Params.cid = Request.QueryString.ga;
+			}
+
+			Db.Write(function() {
+
+				Db.Execute("UPDATE MerchantState SET AttributionData = ?", JSON.stringify(Params) || "");
+				Db.Execute("UPDATE MerchantState SET AttributionSource = ?", CodistoSource || "web");
+
+			});
+
+			Server.ExecuteAsyncNoReturn("/killela/include/sendgainfo.esp", "CARTNAME=" + Cart + "\nPARAMS=" + JSON.stringify(Params));
+
+		} else if ("codistoparams" in Request.Cookies
+			&& (
+				Cart != "magento"
+				&& Cart != "woocommerce"
+				&& Cart != "prestashop")
+			) {
+
+			let [CodistoSource, Params] = (function(){
+
+				var utms = {};
+				let codistosource = "web";
+				let obj = {};
+
+				try {
+					obj = Request.Cookies.Decrypt("codistoparams", [{ Key : "c", Algorithm : "AES", Hash : "SHA256" }]);
+				} catch(e) {
+
+				}
+
+				try {
+
+					if(obj
+						&& typeof(obj) === "object") {
+
+						Object.keys(obj).forEach(function(qs) {
+
+							if(/^utm_|gclid/.test(qs)) {
+								utms[qs] = obj[qs];
+							}
+							if(/utm_source/.test(qs)) {
+								codistosource = obj[qs];
+							}
+
+						});
+
+					}
+
+				} catch(e) {
+
+				}
+
+				return [codistosource, utms];
+
+			})();
+
+
+			if(Request.Cookies._ga){
+				Params.cid = Request.Cookies._ga;
+			}
+
+			Db.Write(function() {
+
+				Db.Execute("UPDATE MerchantState SET AttributionData = ?", JSON.stringify(Params) || "");
+				Db.Execute("UPDATE MerchantState SET AttributionSource = ?", CodistoSource || "web");
+
+			});
+
+			Server.ExecuteAsyncNoReturn("/killela/include/sendgainfo.esp", "CARTNAME=" + Cart + "\nPARAMS=" + JSON.stringify(Params));
+
+		} else if (false) {
+
+			(function() {
+
+				const BaseURL = "https://codisto.com/track?returnattr=1&redirect=" + encodeURIComponent(
+					(Request.ServerVariables.HTTP_X_ADMIN_BASE_URL
+						? Request.ServerVariables.HTTP_X_ADMIN_BASE_URL
+						: "https://" + Request.ServerVariables.HTTP_HOST + "/" + Request.ServerVariables.MERCHANT + Request.ServerVariables.URL)
+				);
+				const Timestamp = Date.now();
+				const Nonce = Base64.Encode(Crypto.Random(10));
+				const IntermediateURL = BaseURL + "&nonce=" + encodeURIComponent(Nonce) + "&date=" + encodeURIComponent(Timestamp);
+				const Signature = (function() {
+					const InternalNet = (Application.InternalNet || Application.NWO_INTERNALNET || "ontech.local").replace(/^\.?/, ".");
+					const GetKeys = Server.Import("include/keys.esp");
+					const key = GetKeys("fastcgi://ladyrobinson" + InternalNet + ":1135/getkeys");
+					return Base64.Encode(Crypto.Hash(Crypto.SHA256, key, IntermediateURL));
+				})();
+				const FullURL = IntermediateURL + "&signature=" + encodeURIComponent(Signature);
+
+				Response.Write("<!DOCTYPE html><html><head><script>window.location = '" + FullURL + "';</script></head><body></body></html>");
+				Response.End();
+
+			})();
+
+		} else {
+
+			Db.Execute("UPDATE MerchantState SET AttributionSource = 'web'");
+
+			Server.ExecuteAsyncNoReturn("/killela/include/sendgainfo.esp", "CARTNAME=" + Cart);
+
+		}
+
+	}
+}
+
+function AuthorisePlugin(Db) {
+
+	const SessionCheck = Server.Import("/killela/include/session.esp");
+	const MerchantURL = Request.ServerVariables.HTTP_HOST;
+	const MerchantID = parseInt(Request.ServerVariables.MERCHANT, 10);
+	const BaseURL = Request.ServerVariables.HTTP_X_ADMIN_BASE_URL
+					|| ("https://" + MerchantURL + "/" + MerchantID + "/");
+	let Enterprise = /^https?:\/\/(?:enterprise\.codisto\.com|channelcloud\.codisto\.com|plus\.codisto\.com|zendesk\.codisto\.com\/frame\/enterprise)\.?(?::\d+)?\//.test(BaseURL);
+
+	if(Enterprise) {
+
+		let [,Session] = SessionCheck(function(Db, Session) {
+
+			if(Session.userid) {
+
+				return [true, Session];
+
+			} else {
+
+				const keys = Server.Import("/killela/include/keys.esp")();
+				const session = Request.Cookies.Decrypt("session", keys);
+				if(session) {
+					return [true, Session];
+				}
+
+			}
+
+			return [false, false];
+
+		})();
+
+		if(Session) {
+			return [true, Session];
+		}
+
+	}
+
+	if("CODISTO_OB_KEY" in Request.ServerVariables) {
+
+		if(Request.ServerVariables.CODISTO_OB_KEY != "YUPpggh785") {
+
+			Response.Write("AUTH FAILED");
+			Response.End();
+
+		}
+
+		return [true, false];
+
+	} else if("HTTP_X_HOSTKEY" in Request.ServerVariables) {
+
+		(function() {
+
+			const HostKey = Db.ExecuteScalar("\
+				SELECT H.HostKey \
+				FROM MerchantDb.Host H \
+				WHERE H.Solution IN ('magento', 'woocommerce', 'prestashop')");
+
+			if(!Request.ServerVariables.HTTP_X_HOSTKEY
+				|| HostKey != Request.ServerVariables.HTTP_X_HOSTKEY) {
+
+				Db.ReadOnly = true;
+
+				const T = new TemplateEngine();
+				T.RootDirectory = ["/killela/templates/"];
+				T.DataSource = Db;
+				T.Input = "/updateplugin.html";
+				T.AddProperty("BaseURL", Request.ServerVariables.HTTP_X_ADMIN_BASE_URL || ("https://" + Request.ServerVariables.HTTP_HOST + "/" + Request.ServerVariables.MERCHANT + "/"));
+				T.AddProperty("MerchantID", Request.ServerVariables.MERCHANT);
+				T.AddProperty("ProductID", 0);
+				T.Execute();
+				Response.End();
+			}
+
+		})();
+
+		return [true, false];
+
+	} else if(Db.ExecuteScalar("\
+		SELECT CASE WHEN EXISTS(\
+			SELECT 1 \
+			FROM MerchantDb.Host H \
+			WHERE H.Solution IN ('shopify')\
+		) THEN -1 ELSE 0 END")) {
+
+		(function() {
+
+			const MerchantID = Db.ExecuteScalar("\
+									SELECT BS.HeadAccountID \
+									FROM MerchantDb.BillingState BS");
+
+			CheckSession(MerchantID);
+
+			const Host = Db.Execute("\
+				SELECT H.Host, H.ShopifyClientID \
+				FROM MerchantDb.Host H \
+				WHERE H.Mode = 'SHOPIFY'")[0];
+
+			Response.Status = "303 See Other";
+			Response.Headers.Location = Host.Host.replace(/\/$/, "") + "/admin/apps/" + Host.ShopifyClientID;
+			Response.End();
+
+		})();
+
+	} else if(Db.ExecuteScalar("\
+		SELECT CASE WHEN EXISTS(\
+			SELECT 1 \
+			FROM MerchantDb.Host H \
+			WHERE H.Solution IN ('bigcommerce')\
+		) THEN -1 ELSE 0 END")) {
+
+		(function() {
+
+			const MerchantID = Db.ExecuteScalar("\
+									SELECT BS.HeadAccountID \
+									FROM MerchantDb.BillingState BS");
+
+			const InternalNet = (Application.InternalNet || Application.NWO_INTERNALNET || ".ontech.local").replace(/^\.?/, ".");
+			const Orion = Server.Import("/killela/include/orion.esp")(InternalNet);
+			const Detail = Orion.MerchantDetail(MerchantID, Request.QueryString.signed_payload || "");
+			const BigCommerce = Server.Import("/killela/include/bigcommerce.esp");
+			const Valid = BigCommerce.verify((Request.ServerVariables.QUERY_STRING || "").replace(/^\?/, ""));
+
+			if(Valid) {
+
+				//Redirect
+				const SessionMerchantID = Request.ServerVariables.MERCHANT;
+
+				const Session = Orion.CreateSession(SessionMerchantID);
+				const SessionBaseURL = "https://" + Request.ServerVariables.HTTP_HOST + "/" + SessionMerchantID + "/" + Session.sessionid + Path + Query;
+
+				Response.Status = "303 See Other";
+				Response.Headers["Cache-Control"] = "no-cache";
+				Response.Headers["Pragma"] = "no-cache";
+				Response.Headers.Location = SessionBaseURL;
+				Response.End();
+
+			}
+
+			CheckSession(MerchantID);
+
+			const Host = Db.Execute("\
+				SELECT H.Host, H.ShopifyClientID \
+				FROM MerchantDb.Host H \
+				WHERE H.Mode = 'BIGCOMMERCE'")[0];
+
+			Response.Status = "303 See Other";
+			Response.Headers.Location = Host.Host.replace(/\/$/, "") + "/manage/app/" + BigCommerce.appId;
+			Response.End();
+
+		})();
+
+	} else if(Db.ExecuteScalar("\
+		SELECT CASE WHEN EXISTS(\
+			SELECT 1 \
+			FROM MerchantDb.Host H \
+			WHERE H.Solution IN ('ecwid')) THEN -1 ELSE 0 END")) {
+
+		(function() {
+
+			const MerchantID = Db.ExecuteScalar("\
+									SELECT BS.HeadAccountID \
+									FROM MerchantDb.BillingState BS");
+
+			const InternalNet = (Application.InternalNet || Application.NWO_INTERNALNET || ".ontech.local").replace(/^\.?/, ".");
+			const Orion = Server.Import("/killela/include/orion.esp")(InternalNet);
+			const Detail = Orion.MerchantDetail(MerchantID, Request.QueryString.signed_payload || "");
+
+			const Valid = (function(){
+
+				if(!("payload" in Request.QueryString)) {
+					return false;
+				}
+
+				const Ecwid = Server.Import("/killela/include/ecwid.esp");
+				const StoreData = JSON.parse(Ecwid.decrypt(Request.QueryString.payload));
+
+				if(StoreData.store_id == Db.ExecuteScalar("SELECT StoreID FROM Host WHERE Mode = 'ECWID'")) {
+					return true;
+				}
+
+				return false;
+
+			})();
+
+			if(Valid) {
+
+				//Redirect
+				const SessionMerchantID = Request.ServerVariables.MERCHANT;
+				const Session = Orion.CreateSession(SessionMerchantID);
+				const SessionBaseURL = "https://" + Request.ServerVariables.HTTP_HOST + "/" + SessionMerchantID + "/" + Session.sessionid + Path + Query;
+
+				Response.Status = "303 See Other";
+				Response.Headers["Cache-Control"] = "no-cache";
+				Response.Headers["Pragma"] = "no-cache";
+				Response.Headers.Location = SessionBaseURL;
+				Response.End();
+
+			}
+
+			CheckSession(MerchantID);
+
+			return [false, false];
+
+		})();
+
+		return [true, false];
+
+	}
+
+	return [false, false];
+
+}
+
+function CheckSession(MerchantID) {
+
+	const URLSessionID = (function() {
+
+		try {
+
+			const [, SessionID] = Request.ServerVariables.URL.match(/^\/([a-zA-Z0-9]{32,64})/);
+			return SessionID;
+
+		} catch(e) {
+
+		}
+
+		if("session" in Request.QueryString) {
+			return Request.QueryString.session;
+		}
+
+		return null;
+
+	})();
+
+	if(URLSessionID) {
+
+		const InternalNet = (Application.InternalNet || Application.NWO_INTERNALNET || ".ontech.local").replace(/^\.?/, ".");
+		const Orion = Server.Import("/killela/include/orion.esp")(InternalNet);
+		const Detail = Orion.CheckSession(MerchantID, URLSessionID || "");
+
+		if("sessionid" in Detail) {
+
+			(function() {
+
+				const Path = Request.ServerVariables.URL.replace(/[a-zA-Z0-9]{32,64}\//, "").replace(/\/?\?.*/, "/");
+				const Query = (function() {
+
+					const Query = Request.QueryString.toString()
+						.replace(/^\?/, "")
+						.split(/&/g)
+						.filter(function(kv) {
+
+							return !/^(?:hmac=|host=|locale=|new_design_language=|session=|shop=|timestamp=)/.test(kv);
+
+						})
+						.join("&")
+						.replace(/&+/, "&");
+
+					return Query ? "?" + Query : "";
+
+				})();
+
+				const SessionMerchantID = Request.ServerVariables.MERCHANT;
+				const Session = Orion.CreateSession(SessionMerchantID, Detail.sessionid);
+				const SessionBaseURL = "https://" + Request.ServerVariables.HTTP_HOST + "/" + SessionMerchantID + "/" + Session.sessionid + Path + Query;
+
+				Response.Status = "303 See Other";
+				Response.Headers["Cache-Control"] = "no-cache";
+				Response.Headers["Pragma"] = "no-cache";
+				Response.Headers.Location = SessionBaseURL;
+				Response.End();
+
+			})();
+
+		}
+
+	}
+
+}
+
+function mask(cc)
+{
+	return cc.substr(0, 6) + "...." + cc.substr(-4);
+}
+
+function luhn(cc)
+{
+	var t=0;
+	for (var i=0; i < cc.length; i++)
+	{
+		var d=cc.charAt(i);
+		if (i%2 == cc.length%2)
+		{
+			d=d*2;
+			if (d>9) {d=d-9;}
+		}
+		t+=parseInt(d);
+	}
+	return (t % 10 == 0);
+}
+
+function CreateTmpAttributes(Db) {
+
+	Db.Execute("CREATE TEMPORARY TABLE TmpProductAttributeGroup (Name text NOT NULL PRIMARY KEY)");
+	Db.Execute("CREATE TEMPORARY TABLE TmpSKUAttributeGroup (Name text NOT NULL PRIMARY KEY)");
+	Db.Execute("CREATE TEMPORARY TABLE TmpProductAttribute (Sequence integer NOT NULL PRIMARY KEY AUTOINCREMENT, AttributeID integer NOT NULL, Label text NOT NULL UNIQUE, AttributeCode text NOT NULL, AttributeGroup text NOT NULL)");
+	Db.Execute("CREATE TEMPORARY TABLE TmpSKUAttribute (Sequence integer NOT NULL PRIMARY KEY AUTOINCREMENT, AttributeID integer NOT NULL, Label text NOT NULL, AttributeCode text NOT NULL, AttributeGroup text NOT NULL)");
+
+	Db.Execute("INSERT INTO TmpProductAttributeGroup (Name) VALUES ('Core Attributes')");
+
+	Db.Execute("INSERT INTO TmpProductAttributeGroup (Name) \
+				SELECT DISTINCT Name \
+				FROM ProductAttributeGroup \
+				WHERE EXISTS( \
+					SELECT 1 \
+					FROM ProductAttributeGroupMap \
+					WHERE GroupID = ProductAttributeGroup.ID \
+						AND AttributeID IN ( \
+							SELECT AttributeID \
+							FROM ProductAttributeMatrix \
+						) \
+					) \
+				ORDER BY Name");
+
+	Db.Execute("INSERT INTO TmpSKUAttributeGroup (Name) \
+				SELECT DISTINCT Name \
+				FROM SKUAttributeGroup \
+				WHERE EXISTS( \
+					SELECT 1 \
+					FROM SKUAttributeGroupMap \
+					WHERE GroupID = SKUAttributeGroup.ID \
+						AND AttributeID IN ( \
+							SELECT AttributeID \
+							FROM SKUAttributeMatrix \
+						) \
+					) \
+				ORDER BY Name");
+
+	Db.Execute("INSERT INTO TmpProductAttribute (AttributeID, Label, AttributeCode, AttributeGroup) VALUES (-1, 'SKU', 'sku', 'Core Attributes')");
+
+	Db.Execute("INSERT OR IGNORE INTO TmpProductAttribute (AttributeCode, AttributeID, Label, AttributeGroup) \
+				SELECT DISTINCT AM.AttributeCode, AM.AttributeID, AM.Label, \
+				(SELECT Name FROM ProductAttributeGroup WHERE ID = (SELECT GroupID FROM ProductAttributeGroupMap WHERE AttributeID = AM.AttributeID)) \
+				FROM ProductAttributeMatrix AM \
+				ORDER BY Label, AttributeCode");
+
+	Db.Execute("INSERT OR IGNORE INTO TmpSKUAttribute (AttributeID, Label, AttributeCode, AttributeGroup) \
+				SELECT DISTINCT AM.AttributeID, AM.AttributeCode, AM.Label, \
+				(SELECT Name FROM SKUAttributeGroup WHERE ID = (SELECT GroupID FROM SKUAttributeGroupMap WHERE AttributeID = AM.AttributeID)) \
+				FROM SKUAttributeMatrix AM \
+				ORDER BY Label, AttributeCode");
+}
+
+Response.End();
