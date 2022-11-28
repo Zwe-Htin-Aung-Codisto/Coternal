@@ -1,0 +1,3 @@
+Announcements:
+	SELECT *
+	FROM Announcements;
