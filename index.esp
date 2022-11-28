@@ -1,19 +1,16 @@
-let PageDir = Request.ServerVariables.URL;
+const PageDir = Request.ServerVariables.URL;
 Debug.LogInfo("PageDir: " + PageDir);
 
-const RedirectPage = (function(Key) {
+const RedirectPage = (function() {
 	return {
 		"/" : "views/nav.esp",
 		"/admin" : "views/admin.esp",
 		"/css/all" : "views/css.esp",
-		"/js/all" : "views/js.esp",
-		"templates/images/codisto-logo-chain.png" : "templates/images/codisto-logo-chain.png"
-	}[Key];
+		"/js/all" : "views/js.esp"
+	}[PageDir];
 }());
 
 if (RedirectPage) {
 	Debug.LogInfo("Redirecting to : " + RedirectPage);
 	Server.Transfer(RedirectPage);
 }
-
-// Server.Transfer('views/nav.esp')
