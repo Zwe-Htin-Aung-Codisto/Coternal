@@ -88,6 +88,12 @@ nav ul li{
 
   }
 
+  .content-wrap{
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+  }
+
   /* Announcement*/
   .announcement-wrap{
     outline: auto;
@@ -129,6 +135,7 @@ nav ul li{
 
 /*Calendar*/
 .calendar-wrap{
+    width: 40vw;
     text-align: center;
     font-family: 'Montserrat', sans-serif;
 }
