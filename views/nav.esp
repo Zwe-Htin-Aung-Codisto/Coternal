@@ -1,16 +1,23 @@
 (function (){
 	//Response.Write("Hello Nav")
 
-
 	const Db = Server.Import("/Coternal/include/db.esp")();
 
+	try {
+		Db.Attach({
+			name : "CoternalDb",
+			path : "Coternal.db"
+		});
+	} catch (e) {
+		Debug.LogInfo(e.toSource());
+	}
 
 	const T = new TemplateEngine();
 	T.QueryString = Request.QueryString;
 	T.DataSource = Db;
 	T.RootDirectory = ["/Coternal/templates/"];
 	T.Input = "/nav.html";
-	T.AddProperty("Sucess", 'Hello Lok');
+	T.AddProperty("TestTable", Db.Execute("SELECT * FROM TestTable").toSource());
 	T.Execute();
 
 })()
