@@ -1,5 +1,12 @@
-<div class="announcement">
-    {for announcement}
-    
-    {/for}
-</div>
+{extend file="/base.html" pageclass="accouncement" title="Accouncement"}
+
+
+Page:
+	<div class="accouncement-wrap">
+
+        {for Announcements}
+        {Announcements.Text}
+        {Announcements.Creator}
+        {/for}
+
+    </div>
