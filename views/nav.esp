@@ -10,20 +10,20 @@
 			path : "/Coternal.db"
 		},
 		function(){
-			Db.Execute("\
-				CREATE TABLE IF NOT EXISTS CoternalDb.Admin (\
-					AdminID integer, \
-					FirstName varchar(50), \
-					LastName varchar(50), \
-					PRIMARY KEY (AdminID) \
-				)");
+			// Db.Execute("\
+			// 	CREATE TABLE IF NOT EXISTS CoternalDb.Admin (\
+			// 		AdminID integer, \
+			// 		FirstName varchar(50), \
+			// 		LastName varchar(50), \
+			// 		PRIMARY KEY (AdminID) \
+			// 	)");
 
-			Db.Execute("\
-				INSERT OR IGNORE INTO CoternalDb.Admin (AdminId, FirstName, LastName) \
-				VALUES \
-					(1, 'Tszlok', 'Lo' ), \
-					(2, 'Zwe Htin', 'Aung') \
-				");
+			// Db.Execute("\
+			// 	INSERT OR IGNORE INTO CoternalDb.Admin (AdminId, FirstName, LastName) \
+			// 	VALUES \
+			// 		(1, 'Tszlok', 'Lo' ), \
+			// 		(2, 'Zwe Htin', 'Aung') \
+			// 	");
 
 			TestTable = Db.Execute("SELECT * FROM CoternalDb.Admin");
 		});
