@@ -1,2 +1,6 @@
-Response.ContentType = "text/css";
-Response.SendFiles("/templates/css/nav.css");
+(function() {
+
+	Response.ContentType = "text/css";
+	Response.SendFile("/templates/css/nav.css");
+
+})()
