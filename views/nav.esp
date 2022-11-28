@@ -1,3 +1,4 @@
+(function (){
 	//Response.Write("Hello Nav")
 
 
@@ -12,4 +13,4 @@
 	T.AddProperty("Sucess", 'Hello Lok');
 	T.Execute();
 
-
+})()
