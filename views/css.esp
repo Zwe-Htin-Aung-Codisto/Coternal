@@ -1,0 +1,51 @@
+(function() {
+
+
+	Response.ContentType = "text/css";
+	Response.Headers["Cache-Control"] = "public, max-age=3153600";
+	Response.Headers["Pragma"] = "cache";
+
+	const StyleSheets = (function() {
+
+		const Path = "/templates/css/";
+
+		const Styles = [
+			Path + "nav.css"
+		];
+
+		return Styles;
+
+	})();
+
+	const Output = new MemoryStream();
+
+	StyleSheets.forEach(function(f) {
+
+		var file = File.Open(f, "rb");
+
+		Output.Write(file);
+		Output.Write("\n");
+
+		file.Close();
+
+	});
+
+	Output.Seek(0);
+
+	const Etag = Base64.Encode(Crypto.Hash(Crypto.MD5, Output));
+
+	Response.Headers["Etag"] = Etag;
+
+	if(("HTTP_IF_NONE_MATCH" in Request.ServerVariables)
+		&& Request.ServerVariables.HTTP_IF_NONE_MATCH === Etag) {
+
+		Response.Status = "304 Not Modified";
+
+	} else {
+
+		Output.Seek(0);
+		Response.BinaryWrite(Output);
+
+	}
+
+})
