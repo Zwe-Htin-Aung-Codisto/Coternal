@@ -7,7 +7,7 @@
 	try {
 		Db.Attach({
 			name : "CoternalDb",
-			path : "Coternal.db"
+			path : "/Coternal.db"
 		},
 		function(){
 			TestTable = Db.Execute("SELECT * FROM CoternalDb.TestTable");
