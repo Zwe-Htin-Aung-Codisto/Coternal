@@ -1,6 +1,5 @@
 *{
     font-family: 'Roboto';
-    color: rgb(203, 203, 203);
 }
 
 body{
@@ -89,12 +88,8 @@ nav ul li{
 
   }
 
-  .content-wrap{
-    color: black;
-  }
-
-
   /* Announcement*/
-  .accouncement-wrap{
+  .announcement-wrap{
     color: rgb(0, 0, 0);
+    border: black solid 1px;
   }
