@@ -17,7 +17,7 @@
 	T.DataSource = Db;
 	T.RootDirectory = ["/Coternal/templates/"];
 	T.Input = "/nav.html";
-	T.AddProperty("TestTable", Db.Execute("SELECT * FROM TestTable").toSource());
+	T.AddProperty("TestTable", Db.Execute("SELECT * FROM CoternalDb.TestTable").toSource());
 	T.Execute();
 
 })()
