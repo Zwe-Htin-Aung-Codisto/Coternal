@@ -4,7 +4,7 @@
 	const T = new TemplateEngine();
 	T.QueryString = Request.QueryString;
 	T.DataSource = Db;
-	T.RootDirectory = "/Coternal/templates/";
+	T.RootDirectory = ["/Coternal/templates/"];
 	T.Input = "/nav.html";
 	T.AddProperty("Sucess", 'Hello Lok');
 	T.Execute();
